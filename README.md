@@ -1,36 +1,69 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Fractal-IS Frontend
 
-## Getting Started
+Esta es la interfaz de usuario de **Fractal-IS**, una aplicación web diseñada para la gestión de proyectos y visualización de datos procesados por IA. El frontend permite a los usuarios cargar transcripciones, gestionar espacios de trabajo y visualizar los resultados del análisis de grafos.
 
-First, run the development server:
+##  Stack Tecnológico
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
-```
+* **Framework:** Next.js 15 (App Router).
+* **Lenguaje:** TypeScript.
+* **Estilos:** Tailwind CSS.
+* **Comunicación API:**
+    * **REST:** Para procesos de carga y servicios de IA.
+    * **GraphQL:** Para consultas de datos eficientes y visualización de registros.
+* **Iconos & UI:** Lucide React y componentes personalizados.
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+##  Instalación y Uso
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+### Requisitos Previos
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+* **Node.js**.
+* **NPM** o **Yarn**.
 
-## Learn More
+### Pasos para el despliegue local
 
-To learn more about Next.js, take a look at the following resources:
+1.  **Clonar el repositorio:**
+    ```bash
+    git clone [https://github.com/RodrigoVargasSanchez/Fractalis-Fronted.git](https://github.com/RodrigoVargasSanchez/Fractalis-Fronted.git)
+    cd proyecto-frontend
+    ```
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+2.  **Instalar dependencias:**
+    ```bash
+    npm install
+    ```
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+3.  **Configurar variables de entorno:**
+    Crea un archivo `.env.local` en la raíz del proyecto y copia las variables de `.env.example`:
+    ```bash
+    NEXT_PUBLIC_API_URL=http://localhost:5000
+    NEXT_PUBLIC_GRAPHQL_URL=http://localhost:5000/graphql
+    ```
+    *Nota: Se recomienda el puerto 5000 para sincronizar con el contenedor del backend.*
 
-## Deploy on Vercel
+4.  **Ejecutar el servidor de desarrollo:**
+    ```bash
+    npm run dev
+    ```
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+La aplicación estará disponible en http://localhost:3000.
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+##  Estructura del Proyecto
+
+* `app/`: Rutas, páginas y layouts (App Router).
+* `components/`: Componentes de interfaz (Formularios, Modales, Sidebar).
+* `hooks/`: Lógica compartida y hooks personalizados.
+* `lib/`: Configuración de clientes API y utilidades de formato.
+* `public/`: Assets estáticos e imágenes.
+
+##  Integración con el Sistema
+
+El frontend funciona como el orquestador visual del sistema Fractal-IS:
+1.  **Envío de Datos:** Captura las transcripciones y las envía al backend para su procesamiento.
+2.  **Visualización:** Consume la API GraphQL para mostrar los espacios guardados y la información de los participantes en tiempo real.
+3.  **Feedback:** Implementa un sistema de modales para errores y confirmaciones de procesos de IA.
+
+##  Características Principales
+
+* **Carga de Archivos:** Interfaz diseñada para el procesamiento de archivos de datos.
+* **Visualización de espacios:** Gestión centralizada de los espacios de trabajo.
+* **Validación:** Manejo de estados de carga y errores durante la sincronización con IA.
