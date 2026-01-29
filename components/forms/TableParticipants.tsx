@@ -3,7 +3,6 @@
 import { FC } from "react";
 import { cn } from "@/lib/utils";
 
-// --- Interfaces (PascalCase) ---
 interface Participante {
   id: string;
   nombre: string;
@@ -15,64 +14,58 @@ interface TableParticipantsProps {
   loading: boolean;
 }
 
-/**
- * Sub-componente interno (PascalCase)
- */
 const Th: FC<{ children: React.ReactNode; className?: string }> = ({ children, className }) => (
-  <th className={cn("p-4 font-medium", className)}>{children}</th>
+  <th className={cn("px-6 py-4 font-bold text-[10px] uppercase tracking-widest text-gray-500", className)}>{children}</th>
 );
 
-// --- Componente Principal (PascalCase) ---
 export default function TableParticipants({ participantes, loading }: TableParticipantsProps) {
-  
-  // --- Estado de Carga (camelCase) ---
   if (loading) {
     return (
-      <div className="p-10 text-center text-gray-400">
-        <div className="w-6 h-6 border-2 border-[#2596be] border-t-transparent rounded-full animate-spin mx-auto mb-2" />
-        <p className="text-sm">Cargando participantes...</p>
+      <div className="p-12 text-center">
+        <div className="w-8 h-8 border-2 border-[#2596be] border-t-transparent rounded-full animate-spin mx-auto mb-4" />
+        <p className="text-gray-500 text-xs font-medium uppercase tracking-widest">Sincronizando participantes...</p>
       </div>
     );
   }
 
   return (
-    <div className="w-full overflow-hidden rounded-lg border border-gray-700">
+    <div className="w-full overflow-x-auto">
       <table className="w-full text-left border-collapse">
         <thead>
-          <tr className="bg-[#222222] text-gray-400 text-[11px] uppercase tracking-wider">
-            <Th>ID</Th>
-            <Th>Nombre Completo</Th>
-            <Th>ID Archivo</Th>
-            <Th className="text-right">Estado</Th>
+          <tr className="border-b border-white/5 bg-white/[0.02]">
+            <Th>ID Sistema</Th>
+            <Th>Nombre</Th>
+            <Th>ID en Excel</Th>
+            <Th className="text-right">Verificación</Th>
           </tr>
         </thead>
-        <tbody className="divide-y divide-gray-700 bg-[#2a2a2a]/30">
+        <tbody className="divide-y divide-white/5">
           {participantes.length > 0 ? (
             participantes.map((participante) => (
-              <tr 
-                key={participante.id} 
-                className="text-gray-200 hover:bg-white/5 transition-colors group"
-              >
-                <td className="p-4 font-mono text-sm text-[#2596be] group-hover:brightness-110">
+              <tr key={participante.id} className="hover:bg-white/[0.02] transition-colors group">
+                <td className="px-6 py-4 font-mono text-xs text-[#2596be] font-bold tracking-tighter">
                   {participante.id}
                 </td>
-                <td className="p-4 text-sm">
+                <td className="px-6 py-4 text-sm text-gray-300 font-medium">
                   {participante.nombre}
                 </td>
-                <td className="p-4 font-bold text-[#2596be] text-sm">
-                  {participante.idArchivo}
+                <td className="px-6 py-4">
+                   <span className="px-3 py-1 bg-[#121212] border border-gray-800 rounded text-xs text-white font-mono">
+                    {participante.idArchivo}
+                   </span>
                 </td>
-                <td className="p-4 text-right">
-                  <span className="px-2 py-1 text-[10px] rounded-full bg-green-500/10 text-green-400 border border-green-500/20 whitespace-nowrap">
-                    Confirmado
-                  </span>
+                <td className="px-6 py-4 text-right">
+                  <div className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-green-500/10 text-green-400 border border-green-500/20">
+                    <div className="w-1 h-1 rounded-full bg-green-400" />
+                    <span className="text-[10px] font-bold uppercase tracking-wide">Listo</span>
+                  </div>
                 </td>
               </tr>
             ))
           ) : (
             <tr>
-              <td colSpan={4} className="p-8 text-center text-gray-500 text-sm italic">
-                No hay participantes seleccionados.
+              <td colSpan={4} className="px-6 py-10 text-center text-gray-600 text-xs italic uppercase tracking-widest">
+                Esperando selección de la etapa anterior...
               </td>
             </tr>
           )}

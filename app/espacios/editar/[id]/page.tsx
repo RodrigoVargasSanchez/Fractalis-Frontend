@@ -2,62 +2,40 @@
 
 import { use, useEffect, useState } from "react";
 import EditForm from "@/components/forms/EditForm";
-import { fetchGraphQL } from "@/lib/graphql";
+import { espaciosService, EspacioEdit } from "@/services/espaciosService";
 
-// --- Interfaces (PascalCase) ---
-interface EspacioEdit {
-  id: number;
-  titulo: string;
-  descripcion: string;
-  participantes: number;
-  fecha: string;
-}
-
+/**
+ * Interfaz para las propiedades de la página.
+ * Define params como una Promesa para cumplir con las convenciones de Next.js en Client Components.
+ */
 interface PageProps {
   params: Promise<{ id: string }>;
 }
 
-// --- Consultas GraphQL (UPPER_CASE) ---
-const GET_ESPACIO_QUERY = `
-  query GetEspacioForEdit($id: Int!) {
-    espacioByEspacioId(espacioId: $id) {
-      espacioId
-      espacioTitulo
-      espacioDescripcion
-      espacioFecha
-      espacioParticipantesByEspacioId {
-        totalCount
-      }
-    }
-  }
-`;
-
+/**
+ * Componente de página para la edición de un espacio existente.
+ * Se encarga de obtener los parámetros de la URL, cargar los datos de la base de datos y proveerlos al formulario.
+ */
 export default function EditarPage({ params }: PageProps) {
-  // 1. Hooks y Estado (camelCase)
+  // Desenvuelve la promesa de los parámetros utilizando el hook 'use'
   const resolvedParams = use(params);
+  
+  // Estado para almacenar los datos del objeto a editar
   const [itemToEdit, setItemToEdit] = useState<EspacioEdit | null>(null);
+  
+  // Estado para gestionar el feedback visual durante la carga de datos
   const [loading, setLoading] = useState(true);
 
-  // 2. Carga de Datos
+  /**
+   * Efecto para cargar los datos del espacio basándose en el ID de la URL.
+   * Se ejecuta cada vez que el ID resuelto cambia.
+   */
   useEffect(() => {
-    const cargarEspacio = async () => {
+    const cargarDatos = async () => {
       try {
-        const data = await fetchGraphQL(GET_ESPACIO_QUERY, { 
-          id: Number(resolvedParams.id) 
-        });
-        
-        // Variable en camelCase
-        const espacioData = data.espacioByEspacioId;
-
-        if (espacioData) {
-          setItemToEdit({
-            id: espacioData.espacioId,
-            titulo: espacioData.espacioTitulo,
-            descripcion: espacioData.espacioDescripcion || "",
-            participantes: espacioData.espacioParticipantesByEspacioId.totalCount,
-            fecha: espacioData.espacioFecha,
-          });
-        }
+        // Convierte el ID a número y realiza la petición al servicio
+        const data = await espaciosService.getById(Number(resolvedParams.id));
+        setItemToEdit(data);
       } catch (error) {
         console.error("Error al cargar el espacio:", error);
       } finally {
@@ -65,10 +43,13 @@ export default function EditarPage({ params }: PageProps) {
       }
     };
 
-    cargarEspacio();
+    cargarDatos();
   }, [resolvedParams.id]);
 
-  // 3. Renders Condicionales
+  /**
+   * Renderizado de estado de carga.
+   * Muestra un spinner animado mientras se espera la respuesta de la base de datos.
+   */
   if (loading) {
     return (
       <div className="flex flex-col items-center justify-center h-64 text-white">
@@ -78,6 +59,10 @@ export default function EditarPage({ params }: PageProps) {
     );
   }
 
+  /**
+   * Renderizado de error en caso de que no se encuentre el registro.
+   * Proporciona feedback al usuario sobre la inexistencia del ID consultado.
+   */
   if (!itemToEdit) {
     return (
       <div className="flex flex-col items-center justify-center h-64 text-white text-center">
@@ -89,7 +74,10 @@ export default function EditarPage({ params }: PageProps) {
     );
   }
 
-  // 4. Render Principal (Componentes en PascalCase)
+  /**
+   * Renderizado principal de la página de edición.
+   * Incluye el encabezado con el título dinámico y el componente EditForm con los datos precargados.
+   */
   return (
     <div className="max-w-2xl mx-auto p-6">
       <header className="mb-8">
@@ -100,6 +88,7 @@ export default function EditarPage({ params }: PageProps) {
         </p>
       </header>
 
+      {/* Componente de formulario que recibe los datos iniciales para su edición */}
       <EditForm initialData={itemToEdit} />
     </div>
   );

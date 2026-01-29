@@ -4,104 +4,60 @@ import { useState, useEffect, useMemo } from "react";
 import SortDropdown from "@/components/ui/SortDropdown";
 import Table from "@/components/dashboard/Table";
 import SearchBar from "@/components/ui/SearchBar";
-import { fetchGraphQL } from "@/lib/graphql";
+import { espaciosService, Espacio } from "@/services/espaciosService";
 
-// --- Interfaces (PascalCase para Tipos/Interfaces) ---
-interface Espacio {
-  id: number;
-  titulo: string;
-  descripcion: string;
-  fecha: string;
-  participantes: number;
-}
-
-// --- Constantes (UPPER_CASE) ---
-const GET_ESPACIOS_QUERY = `
-  query GetEspacios {
-    allEspacios(orderBy: ESPACIO_FECHA_DESC) {
-      nodes {
-        espacioId
-        espacioTitulo
-        espacioDescripcion
-        espacioFecha
-        espacioParticipantesByEspacioId {
-          totalCount
-        }
-      }
-    }
-  }
-`;
-
-const API_DELETE_URL = "http://localhost:5000/api/espacios";
-
+/**
+ * Componente principal de la página de Espacios.
+ * Gestiona el estado de los datos, el filtrado, el ordenamiento y las acciones de borrado.
+ */
 export default function EspaciosPage() {
-  // --- Estado (camelCase) ---
+  // Estado para almacenar la lista de espacios obtenida de la API
   const [espacios, setEspacios] = useState<Espacio[]>([]);
+  // Estado para el término de búsqueda ingresado por el usuario
   const [searchTerm, setSearchTerm] = useState("");
+  // Estado para el criterio de ordenamiento seleccionado
   const [sortCriteria, setSortCriteria] = useState("fecha");
+  // Estado para controlar la visualización del indicador de carga
   const [loading, setLoading] = useState(true);
 
-  // --- Carga de datos ---
+  /**
+   * Efecto de carga inicial.
+   * Realiza la petición al servicio para obtener todos los espacios al montar el componente.
+   */
   useEffect(() => {
-    const cargarEspacios = async () => {
+    const cargarDatos = async () => {
       try {
-        const data = await fetchGraphQL(GET_ESPACIOS_QUERY);
-        
-        // Variables internas (camelCase)
-        const dataFormateada: Espacio[] = data.allEspacios.nodes.map((e: any) => {
-          const fechaObj = new Date(e.espacioFecha);
-          
-          const fechaTexto = fechaObj.toLocaleDateString('es-ES', { 
-            day: '2-digit', 
-            month: '2-digit', 
-            year: 'numeric' 
-          });
-          
-          const horaTexto = fechaObj.toLocaleTimeString('es-ES', { 
-            hour: '2-digit', 
-            minute: '2-digit' 
-          });
-          
-          return {
-            id: e.espacioId,
-            titulo: e.espacioTitulo,
-            descripcion: e.espacioDescripcion || "Sin descripción",
-            fecha: `${fechaTexto} — ${horaTexto}`,
-            participantes: e.espacioParticipantesByEspacioId.totalCount,
-          };
-        });
-
-        setEspacios(dataFormateada);
+        const data = await espaciosService.getAll();
+        setEspacios(data);
       } catch (error) {
         console.error("Error al cargar espacios:", error);
       } finally {
         setLoading(false);
       }
     };
-
-    cargarEspacios();
+    cargarDatos();
   }, []);
 
-  // --- Handlers (camelCase) ---
+  /**
+   * Manejador para la eliminación de un registro.
+   * Solicita confirmación y actualiza el estado local tras la respuesta exitosa del servicio.
+   */
   const handleEliminar = async (id: number) => {
     if (!confirm("¿Estás seguro de que deseas eliminar este espacio?")) return;
-
     try {
-      const response = await fetch(`${API_DELETE_URL}/${id}`, {
-        method: 'DELETE',
-      });
-
-      if (!response.ok) throw new Error("Error al eliminar");
-
+      await espaciosService.delete(id);
       setEspacios(prev => prev.filter(espacio => espacio.id !== id));
     } catch (error) {
       alert("No se pudo eliminar el espacio.");
     }
   };
 
-  // --- Lógica Memorizada (camelCase) ---
+  /**
+   * Memorización de los datos procesados.
+   * Filtra por título o descripción y aplica el ordenamiento según el criterio seleccionado.
+   * Se recalcula solo cuando cambian los espacios, el término de búsqueda o el criterio de orden.
+   */
   const processedData = useMemo(() => {
-    // 1. Filtrar
     const filtered = espacios.filter((item) => {
       const term = searchTerm.toLowerCase();
       return (
@@ -110,7 +66,6 @@ export default function EspaciosPage() {
       );
     });
 
-    // 2. Ordenar
     return [...filtered].sort((a, b) => {
       switch (sortCriteria) {
         case 'fecha':
@@ -127,7 +82,7 @@ export default function EspaciosPage() {
     });
   }, [espacios, searchTerm, sortCriteria]);
 
-  // --- Renderizado de estados auxiliares (PascalCase para componentes de UI) ---
+  // Interfaz de carga mientras la petición asíncrona se completa
   if (loading) {
     return (
       <div className="flex flex-col items-center justify-center py-20">
@@ -139,39 +94,26 @@ export default function EspaciosPage() {
 
   return (
     <div className="max-w-7xl mx-auto p-4 sm:p-8">
-      <header className="mb-16 text-center space-y-4">
-        <img 
-          src="/logofractalis.png" 
-          alt="Fractal-IS Diálogo Logo" 
-          className="mx-auto h-auto w-28 md:w-44 object-contain mb-6"
-        />
-        <div className="h-1 w-20 bg-blue-600 mx-auto rounded-full opacity-50" />
+      {/* Encabezado con logo, barra de búsqueda y opciones de ordenamiento */}
+      <header className="flex flex-col items-center space-y-8 mb-12">
+        <img src="/logofractalis.png" alt="Logo" className="h-auto w-40 md:w-64 object-contain" />
+        <div className="w-full max-w-2xl">
+          <SearchBar onSearch={setSearchTerm} placeholder="Buscar por título..." />
+        </div>
+        <div className="flex justify-center w-full">
+          <SortDropdown onSort={setSortCriteria} />
+        </div>
       </header>
       
-      {/* Barra de Controles */}
-      <div className="flex flex-col md:flex-row justify-between items-center gap-6 mb-8">
-        <div className="w-full md:w-1/3">
-          <SearchBar 
-            onSearch={setSearchTerm} 
-            placeholder="Buscar por título o descripción..." 
-          />
-        </div>
-        
-        <SortDropdown onSort={setSortCriteria} />
-      </div>
-      
-      {/* Tabla de Resultados (PascalCase) */}
-      <div className="space-y-6">
+      {/* Sección principal que renderiza la tabla o el mensaje de ausencia de datos */}
+      <main className="space-y-6">
         <Table data={processedData} onDelete={handleEliminar} />
-
         {processedData.length === 0 && (
           <div className="bg-[#1a1a1a] border border-gray-800 rounded-xl p-12 text-center">
-            <p className="text-gray-500 italic">
-              No se encontraron espacios que coincidan con tu búsqueda.
-            </p>
+            <p className="text-gray-500 italic">No se encontraron resultados.</p>
           </div>
         )}
-      </div>
+      </main>
     </div>
   );
 }
