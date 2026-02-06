@@ -4,7 +4,6 @@ const BASE_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000";
 
 /**
  * Servicio encargado de la recuperación y transformación de datos del grafo.
- * Convierte nodos y relaciones crudas en una secuencia lógica (roadmap) para la UI.
  */
 export const grafoService = {
   getGraphData: async (graphId: string) => {
@@ -12,70 +11,87 @@ export const grafoService = {
     if (!response.ok) throw new Error("Error al obtener el grafo");
     const data = await response.json();
 
+    // Verificación de seguridad para evitar errores de carga
+    if (!data.nodes || !Array.isArray(data.nodes)) {
+      return { title: "Grafo vacío", processedNodes: [], rawEdges: [], peopleMap: {}, roadmap: [] };
+    }
+
     /**
      * 1. Título y Mapeo de Personas
-     * Extrae el nodo raíz del tema y asigna colores consistentes a cada usuario.
+     * Ajustado para leer 'type' (del formateador del backend) o 'labels'
      */
-    const topicNode = data.nodes.find((n: any) => n.labels.includes("Topic"));
-    const title = topicNode ? topicNode.properties.title : "Grafo de Diálogo";
+    const topicNode = data.nodes.find((n: any) => 
+      n.type === "Topic" || (n.labels && n.labels.includes("Topic"))
+    );
+    const title = topicNode?.data?.title || topicNode?.properties?.title || "Grafo de Diálogo";
 
     const peopleMap: Record<string, string> = {};
     data.nodes
-      .filter((n: any) => n.labels.includes("User"))
+      .filter((n: any) => n.type === "User" || (n.labels && n.labels.includes("User")))
       .forEach((p: any, idx: number) => {
-        // Asigna un color de la paleta constante basado en el índice del usuario
-        peopleMap[p.properties.name] = PERSON_COLORS[idx % PERSON_COLORS.length];
+        const name = p.data?.name || p.properties?.name;
+        if (name) {
+          peopleMap[name] = PERSON_COLORS[idx % PERSON_COLORS.length];
+        }
       });
 
     /**
-     * 2. Procesar Opiniones y Roadmap (Hoja de ruta)
-     * Ordena las intervenciones cronológicamente para reconstruir la narrativa del debate.
+     * 2. Procesar Opiniones y Roadmap
      */
-    const opinionsRaw = data.nodes.filter((n: any) => n.labels.includes("Opinion"));
-    const sortedOpinions = [...opinionsRaw].sort(
-      (a: any, b: any) => new Date(a.properties.timestamp).getTime() - new Date(b.properties.timestamp).getTime()
+    const opinionsRaw = data.nodes.filter((n: any) => 
+      n.type === "Opinion" || (n.labels && n.labels.includes("Opinion"))
     );
+    
+    const sortedOpinions = [...opinionsRaw].sort((a: any, b: any) => {
+      const timeA = new Date(a.data?.timestamp || a.properties?.timestamp).getTime();
+      const timeB = new Date(b.data?.timestamp || b.properties?.timestamp).getTime();
+      return timeA - timeB;
+    });
 
     const roadmap: any[] = [];
     const conceptData: Record<string, any> = {};
 
     sortedOpinions.forEach((op: any) => {
-      // Identifica al autor de la opinión buscando la relación "MADE_OPINION"
-      const authorEdge = data.edges.find((e: any) => e.target === op.id && e.type === "MADE_OPINION");
+      const opProps = op.data || op.properties;
+      
+      // Identifica al autor buscando la relación "MADE_OPINION"
+      const authorEdge = data.edges.find((e: any) => e.target === op.id && e.label === "MADE_OPINION");
       const author = authorEdge ? data.nodes.find((n: any) => n.id === authorEdge.source) : null;
-      const authorColor = author ? peopleMap[author.properties.name] : "#57606f";
-      const authorName = author ? author.properties.name : "Sistema";
+      
+      const authorName = author?.data?.name || author?.properties?.name || "Sistema";
+      const authorColor = peopleMap[authorName] || "#57606f";
 
-      // Encuentra qué conceptos fueron mencionados o creados en esta opinión
-      const conceptEdges = data.edges.filter((e: any) => e.source === op.id && e.type === "CONTAINS");
+      // Conceptos mencionados en esta opinión
+      const conceptEdges = data.edges.filter((e: any) => e.source === op.id && e.label === "CONTAINS");
+      
       conceptEdges.forEach((edge: any) => {
         const conceptNode = data.nodes.find((n: any) => n.id === edge.target);
         if (!conceptNode) return;
 
-        // Alimenta la secuencia que usará el "Modo Cine" para reproducir el grafo
+        const cProps = conceptNode.data || conceptNode.properties;
+        const opTime = new Date(opProps.timestamp).getTime();
+
         roadmap.push({
           id: conceptNode.id,
-          name: conceptNode.properties.name,
-          timestamp: new Date(op.properties.timestamp).getTime(),
-          ronda: op.properties.ronda,
+          name: cProps.name,
+          timestamp: opTime,
+          ronda: opProps.ronda,
           authorColor,
           authorName,
-          opinionContent: op.properties.text || op.properties.content || "Sin contenido",
+          opinionContent: opProps.text || opProps.content || "Sin contenido",
           opinionId: op.id,
         });
 
-        // Agrupa metadatos por concepto: primera aparición (ronda) y rastro de menciones
         if (!conceptData[conceptNode.id]) {
           conceptData[conceptNode.id] = {
-            ronda: op.properties.ronda,
+            ronda: opProps.ronda,
             colorOriginal: authorColor,
             coloresMenciones: [authorColor],
-            timestamp: new Date(op.properties.timestamp).getTime(),
-            menciones: [new Date(op.properties.timestamp).getTime()],
+            timestamp: opTime,
+            menciones: [opTime],
           };
         } else {
-          // Si el concepto ya existe, añadimos la nueva mención y el color del autor actual
-          conceptData[conceptNode.id].menciones.push(new Date(op.properties.timestamp).getTime());
+          conceptData[conceptNode.id].menciones.push(opTime);
           conceptData[conceptNode.id].coloresMenciones.push(authorColor);
         }
       });
@@ -83,24 +99,28 @@ export const grafoService = {
 
     /**
      * 3. Procesar Nodos de Concepto Finales
-     * Enriquece los nodos de tipo "Concept" con la información cronológica y visual procesada arriba.
      */
     const processedNodes = data.nodes
-      .filter((n: any) => n.labels.includes("Concept"))
-      .map((n: any) => ({
-        ...n,
-        properties: {
-          ...n.properties,
-          ronda: conceptData[n.id]?.ronda || 1,
-          color: conceptData[n.id]?.colorOriginal || "#57606f",
-          coloresMenciones: conceptData[n.id]?.coloresMenciones || [],
-          timestamp: conceptData[n.id]?.timestamp || Date.now(),
-          menciones: conceptData[n.id]?.menciones || [],
-        },
-      }))
-      .sort((a: any, b: any) => a.properties.timestamp - b.properties.timestamp);
+      .filter((n: any) => n.type === "Concept" || (n.labels && n.labels.includes("Concept")))
+      .map((n: any) => {
+        const cId = n.id;
+        const currentProps = n.data || n.properties;
+        
+        return {
+          ...n,
+          // Aseguramos que data sea el contenedor principal para React Flow
+          data: {
+            ...currentProps,
+            ronda: conceptData[cId]?.ronda || 1,
+            color: conceptData[cId]?.colorOriginal || "#57606f",
+            coloresMenciones: conceptData[cId]?.coloresMenciones || [],
+            timestamp: conceptData[cId]?.timestamp || Date.now(),
+            menciones: conceptData[cId]?.menciones || [],
+          },
+        };
+      })
+      .sort((a: any, b: any) => a.data.timestamp - b.data.timestamp);
 
-    // Devuelve el objeto unificado para que el hook useGraphLogic pueda consumirlo directamente
     return { title, processedNodes, rawEdges: data.edges, peopleMap, roadmap };
   }
 };

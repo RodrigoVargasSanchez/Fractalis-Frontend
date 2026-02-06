@@ -13,6 +13,21 @@ export const PERSON_COLORS = [
 ];
 
 /**
+ * Colores para las relaciones semánticas del grafo.
+ * Mapea el ID de la relación con un color hexadecimal.
+ */
+
+export const RELATION_COLORS: Record<string, string> = {
+  causalidad: "#00E5FF",      // Cian eléctrico
+  dependencia: "#3F51FF",     // Azul intenso
+  ejemplificacion: "#800080", // Verde neón
+  consecuencia: "#F5F5F5",   // Blanco
+  sinergia: "#008000",       // Morado vivo
+  antagonismo: "#FF1744",    // Rojo intenso
+};
+
+
+/**
  * Parámetros de configuración para el algoritmo de posicionamiento de nodos.
  * Controla la distribución espacial y la densidad del grafo evolutivo.
  */

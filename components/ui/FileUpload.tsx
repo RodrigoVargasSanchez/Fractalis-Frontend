@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useState, ChangeEvent } from 'react';
+import { cn } from "@/lib/utils";
 
 interface FileUploadProps {
   label?: string;
@@ -30,31 +31,42 @@ export default function FileUpload({
     <div className="w-full">
       <label 
         htmlFor="File" 
-        className="group relative flex cursor-pointer flex-col items-center justify-center rounded-2xl border-2 border-dashed border-gray-800 bg-[#121212] p-10 text-center transition-all hover:border-[#2596be]/50 hover:bg-[#2596be]/5"
+        className={cn(
+          "group relative flex cursor-pointer flex-col items-center justify-center",
+          "rounded-lg border border-dashed border-white/10 bg-[#0a0a0a]",
+          "p-12 text-center transition-all duration-300",
+          "hover:border-[#2596be]/40 hover:bg-[#2596be]/5 hover:shadow-[0_0_20px_rgba(37,150,190,0.05)]"
+        )}
       >
-        <div className="mb-6 transform transition-transform group-hover:scale-110 duration-500">
+        {/* Icono con estética técnica */}
+        <div className="mb-6 transform transition-all duration-500 group-hover:scale-105 group-hover:drop-shadow-[0_0_15px_rgba(37,150,190,0.3)]">
           <img 
             src="/archivo-subir.png" 
             alt="Excel Icon"
-            className="w-24 h-24 object-contain opacity-80 group-hover:opacity-100" 
+            className="w-20 h-20 object-contain opacity-40 group-hover:opacity-100 grayscale group-hover:grayscale-0 transition-all" 
           />
         </div>
 
-        <div className="space-y-2">
-          <p className="font-bold text-lg text-white">
+        <div className="space-y-3">
+          <p className="font-bold text-[10px] uppercase tracking-[0.2em] text-gray-500 group-hover:text-gray-300 transition-colors">
             {fileCount > 0 
-              ? `${fileCount} archivo(s) listos` 
-              : label
+              ? `// ${fileCount} archivo(s) detectado(s)` 
+              : `// ${label}`
             }
           </p>
-          <p className="text-xs text-gray-500 font-medium">
-            Formatos admitidos: Excel (.xlsx, .xls)
+          <p className="text-[10px] text-gray-600 font-mono tracking-tighter">
+            SYSTEM_ACCEPT: [EXCEL_.XLSX, .XLS]
           </p>
         </div>
 
-        <span className="mt-6 inline-flex items-center gap-2 rounded-xl bg-[#1a1a1a] px-5 py-2.5 text-xs font-bold text-gray-300 border border-white/5 transition-all group-hover:bg-[#2596be] group-hover:text-white">
-          <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
+        {/* Botón estilo terminal */}
+        <span className={cn(
+          "mt-8 inline-flex items-center gap-2 rounded border border-white/5 bg-[#121212]",
+          "px-6 py-2 text-[10px] font-bold uppercase tracking-widest text-gray-400",
+          "transition-all group-hover:border-[#2596be] group-hover:text-[#2596be] group-hover:bg-[#2596be]/10"
+        )}>
+          <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M12 4v16m8-8H4" />
           </svg>
           {buttonText}
         </span>

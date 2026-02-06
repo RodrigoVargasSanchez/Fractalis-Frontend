@@ -1,5 +1,4 @@
 import { fetchGraphQL } from "@/lib/graphql";
-import { Relacion } from "@/app/nuevo/subir-archivo/constants";
 
 /**
  * --- Interfaces de Datos ---
@@ -179,13 +178,11 @@ export const espaciosService = {
     descripcion: string;
     participantes: any[];
     excelData: any[];
-    relaciones: Relacion[];
   }): Promise<void> => {
     // Estructuración del cuerpo del mensaje para el endpoint de IA
     const body = {
       proyecto: payload.titulo,
       descripcion: payload.descripcion,
-      relaciones_permitidas: payload.relaciones,
       participantes_db: payload.participantes.map(p => ({
         db_id: p.id,
         archivo_id: p.idArchivo,

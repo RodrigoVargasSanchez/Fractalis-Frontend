@@ -15,21 +15,23 @@ interface TableParticipantsProps {
 }
 
 const Th: FC<{ children: React.ReactNode; className?: string }> = ({ children, className }) => (
-  <th className={cn("px-6 py-4 font-bold text-[10px] uppercase tracking-widest text-gray-500", className)}>{children}</th>
+  <th className={cn("px-6 py-4 font-bold text-[10px] uppercase tracking-widest text-gray-500", className)}>
+    {children}
+  </th>
 );
 
 export default function TableParticipants({ participantes, loading }: TableParticipantsProps) {
   if (loading) {
     return (
-      <div className="p-12 text-center">
+      <div className="p-12 text-center border border-white/5 rounded-lg bg-[#0a0a0a]">
         <div className="w-8 h-8 border-2 border-[#2596be] border-t-transparent rounded-full animate-spin mx-auto mb-4" />
-        <p className="text-gray-500 text-xs font-medium uppercase tracking-widest">Sincronizando participantes...</p>
+        <p className="text-gray-500 text-[10px] font-bold uppercase tracking-widest">Sincronizando participantes...</p>
       </div>
     );
   }
 
   return (
-    <div className="w-full overflow-x-auto">
+    <div className="w-full overflow-x-auto border border-white/5 rounded-lg bg-[#0a0a0a]">
       <table className="w-full text-left border-collapse">
         <thead>
           <tr className="border-b border-white/5 bg-white/[0.02]">
@@ -50,9 +52,11 @@ export default function TableParticipants({ participantes, loading }: TableParti
                   {participante.nombre}
                 </td>
                 <td className="px-6 py-4">
-                   <span className="px-3 py-1 bg-[#121212] border border-gray-800 rounded text-xs text-white font-mono">
-                    {participante.idArchivo}
-                   </span>
+                  <div className="inline-block bg-[#121212] border border-gray-800 rounded px-3 py-1">
+                    <span className="text-xs text-white font-mono">
+                      {participante.idArchivo}
+                    </span>
+                  </div>
                 </td>
                 <td className="px-6 py-4 text-right">
                   <div className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-green-500/10 text-green-400 border border-green-500/20">
@@ -64,8 +68,8 @@ export default function TableParticipants({ participantes, loading }: TableParti
             ))
           ) : (
             <tr>
-              <td colSpan={4} className="px-6 py-10 text-center text-gray-600 text-xs italic uppercase tracking-widest">
-                Esperando selección de la etapa anterior...
+              <td colSpan={4} className="px-6 py-12 text-center text-gray-600 text-[10px] font-bold uppercase tracking-[0.2em]">
+                // Esperando selección de la etapa anterior...
               </td>
             </tr>
           )}
