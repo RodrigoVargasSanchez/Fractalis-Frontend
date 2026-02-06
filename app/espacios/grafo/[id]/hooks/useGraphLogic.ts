@@ -25,6 +25,8 @@ export function useGraphLogic(graphId: string) {
   const [velocidad, setVelocidad] = useState(3);
   const [nodoActualIdx, setNodoActualIdx] = useState(-1);
   const [showEdges, setShowEdges] = useState(true);
+  
+  const [relationFilter, setRelationFilter] = useState<"polaridad" | "otros" | "todos">("todos");
 
   const [nodes, setNodes, onNodesChange] = useNodesState([]);
   const [edges, setEdges, onEdgesChange] = useEdgesState([]);
@@ -41,9 +43,14 @@ export function useGraphLogic(graphId: string) {
         fixedPositionsRef.current = calculateNodePositions(data.processedNodes);
         setMasterData({ nodes: data.processedNodes, edges: data.rawEdges, personColors: data.peopleMap });
 
-        // Corregido: Acceso a data.ronda en lugar de properties.ronda
-        const rondas = data.processedNodes.map((n: any) => n.data?.ronda || 1);
-        if (rondas.length > 0) setMaxRondas(Math.max(...rondas));
+        // CORRECCIÓN: Cálculo robusto de maxRondas comparando roadmap y nodos
+        const rondasNodos = data.processedNodes.map((n: any) => n.data?.ronda || 0);
+        const rondasRoadmap = data.roadmap.map((r: any) => r.ronda || 0);
+        const maxFound = Math.max(...rondasNodos, ...rondasRoadmap, 1);
+        
+        setMaxRondas(maxFound);
+        // Si es la carga inicial, nos aseguramos de estar en la última ronda disponible
+        setRondaActual(maxFound);
       } catch (error) {
         console.error("Error al cargar el grafo:", error);
       }
@@ -102,8 +109,11 @@ export function useGraphLogic(graphId: string) {
     const currentStep = movieSequence[nodoActualIdx];
 
     const currentNodes: Node[] = masterData.nodes
-      // Corregido: node.data.ronda en lugar de node.properties.ronda
-      .filter((node) => isPlaying ? visibleIdsInSequence?.has(node.id) : (node.data?.ronda || 1) <= rondaActual)
+      .filter((node) => {
+        const rondaNodo = node.data?.ronda || 1;
+        // CORRECCIÓN: Asegurar que la lógica de filtrado por ronda sea inclusiva
+        return isPlaying ? visibleIdsInSequence?.has(node.id) : rondaNodo <= rondaActual;
+      })
       .map((node) => {
         const nodeData = node.data || {};
         const isFocused = isPlaying && node.id === currentStep?.id;
@@ -132,13 +142,22 @@ export function useGraphLogic(graphId: string) {
     const currentEdges: Edge[] = masterData.edges
       .filter((e) => {
         const isVisible = currentVisibleIds.has(e.source.toString()) && currentVisibleIds.has(e.target.toString());
+        const typeKey = (e.label || e.type || "").toLowerCase();
+
+        let matchesFilter = true;
+        const isPolaridad = ["sinergia", "antagonismo", "contradicts", "complementary_to"].includes(typeKey);
+        
+        if (relationFilter === "polaridad") {
+          matchesFilter = isPolaridad;
+        } else if (relationFilter === "otros") {
+          matchesFilter = !isPolaridad;
+        }
+
         const edgeId = `e-${e.id}`;
         if (isPlaying && !showEdges && !animatedEdgesRef.current.has(edgeId)) return false;
         
-        // Validación dinámica de tipo de relación (usando e.label que viene del backend)
-        const typeStr = (e.label || e.type || "").toLowerCase();
-        const isValid = RELATION_COLORS[typeStr] || e.type === "CONTRADICTS" || e.type === "COMPLEMENTARY_TO";
-        return isValid && isVisible;
+        const isValid = RELATION_COLORS[typeKey] || e.type === "CONTRADICTS" || e.type === "COMPLEMENTARY_TO";
+        return isValid && isVisible && matchesFilter;
       })
       .map((edge) => {
         const edgeId = `e-${edge.id}`;
@@ -173,12 +192,13 @@ export function useGraphLogic(graphId: string) {
 
     setNodes(currentNodes);
     setEdges(currentEdges);
-  }, [nodoActualIdx, rondaActual, isPlaying, masterData, movieSequence, setNodes, setEdges, showEdges]);
+  }, [nodoActualIdx, rondaActual, isPlaying, masterData, movieSequence, setNodes, setEdges, showEdges, relationFilter]);
 
   return {
     nodes, edges, onNodesChange, onEdgesChange, graphTitle,
     rondaActual, setRondaActual: handleSetRondaActual, maxRondas,
     isPlaying, setIsPlaying, velocidad, setVelocidad,
     masterData, nodoActualIdx, setNodoActualIdx, movieSequence,
+    relationFilter, setRelationFilter
   };
 }
