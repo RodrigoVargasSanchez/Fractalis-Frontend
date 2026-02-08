@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, useCallback } from "react";
 import { useNodesState, useEdgesState, useReactFlow, Node, Edge, MarkerType } from "reactflow";
 import { calculateNodePositions } from "@/lib/graph-utils";
 import { grafoService } from "@/services/grafoService";
@@ -34,29 +34,29 @@ export function useGraphLogic(graphId: string) {
   const fixedPositionsRef = useRef<Record<string, { x: number; y: number }>>({});
   const animatedEdgesRef = useRef<Set<string>>(new Set());
 
-  useEffect(() => {
-    const cargarDatos = async () => {
-      try {
-        const data = await grafoService.getGraphData(graphId);
-        setGraphTitle(data.title);
-        setMovieSequence(data.roadmap);
-        fixedPositionsRef.current = calculateNodePositions(data.processedNodes);
-        setMasterData({ nodes: data.processedNodes, edges: data.rawEdges, personColors: data.peopleMap });
+  // Definición de refreshGraph envuelta en useCallback para estabilidad de dependencias
+  const refreshGraph = useCallback(async () => {
+    try {
+      const data = await grafoService.getGraphData(graphId);
+      setGraphTitle(data.title);
+      setMovieSequence(data.roadmap);
+      fixedPositionsRef.current = calculateNodePositions(data.processedNodes);
+      setMasterData({ nodes: data.processedNodes, edges: data.rawEdges, personColors: data.peopleMap });
 
-        // CORRECCIÓN: Cálculo robusto de maxRondas comparando roadmap y nodos
-        const rondasNodos = data.processedNodes.map((n: any) => n.data?.ronda || 0);
-        const rondasRoadmap = data.roadmap.map((r: any) => r.ronda || 0);
-        const maxFound = Math.max(...rondasNodos, ...rondasRoadmap, 1);
-        
-        setMaxRondas(maxFound);
-        // Si es la carga inicial, nos aseguramos de estar en la última ronda disponible
-        setRondaActual(maxFound);
-      } catch (error) {
-        console.error("Error al cargar el grafo:", error);
-      }
-    };
-    cargarDatos();
+      const rondasNodos = data.processedNodes.map((n: any) => n.data?.ronda || 0);
+      const rondasRoadmap = data.roadmap.map((r: any) => r.ronda || 0);
+      const maxFound = Math.max(...rondasNodos, ...rondasRoadmap, 1);
+      
+      setMaxRondas(maxFound);
+      setRondaActual(prev => prev === 0 ? maxFound : prev);
+    } catch (error) {
+      console.error("Error al cargar el grafo:", error);
+    }
   }, [graphId]);
+
+  useEffect(() => {
+    refreshGraph();
+  }, [refreshGraph]);
 
   const handleSetRondaActual = (ronda: number) => {
     setRondaActual(ronda);
@@ -111,7 +111,6 @@ export function useGraphLogic(graphId: string) {
     const currentNodes: Node[] = masterData.nodes
       .filter((node) => {
         const rondaNodo = node.data?.ronda || 1;
-        // CORRECCIÓN: Asegurar que la lógica de filtrado por ronda sea inclusiva
         return isPlaying ? visibleIdsInSequence?.has(node.id) : rondaNodo <= rondaActual;
       })
       .map((node) => {
@@ -199,6 +198,6 @@ export function useGraphLogic(graphId: string) {
     rondaActual, setRondaActual: handleSetRondaActual, maxRondas,
     isPlaying, setIsPlaying, velocidad, setVelocidad,
     masterData, nodoActualIdx, setNodoActualIdx, movieSequence,
-    relationFilter, setRelationFilter
+    relationFilter, setRelationFilter, refreshGraph
   };
 }

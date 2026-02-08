@@ -3,28 +3,72 @@ import { PERSON_COLORS } from "../app/espacios/grafo/[id]/constants";
 const BASE_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000";
 
 /**
- * Servicio encargado de la recuperación y transformación de datos del grafo.
+ * Servicio encargado de la recuperación, transformación y actualización de datos del grafo.
  */
 export const grafoService = {
+  /**
+   * Envía una solicitud PATCH para renombrar conceptos y reestructurar el grafo en Neo4j.
+   */
+  updateConcepts: async (pid: string, updates: { oldName: string, newName: string }[]) => {
+    const url = `${BASE_URL}/api/concepts/bulk-update`;
+    console.log("--- [SERVICE] Intentando PATCH de conceptos a:", url);
+
+    const response = await fetch(url, {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ pid: parseInt(pid), updates }),
+    });
+
+    if (!response.ok) {
+      console.error("--- [SERVICE] Status Error (Concepts):", response.status); 
+      const errorData = await response.json().catch(() => ({}));
+      throw new Error(errorData.error || `Error ${response.status}: Fallo al actualizar conceptos`);
+    }
+
+    return response.json();
+  },
+
+  /**
+   * Envía una solicitud PATCH para actualizar tipos de relaciones o eliminar aristas en Neo4j.
+   */
+  updateEdges: async (pid: string, updates: any[], deletions: string[]) => {
+    const url = `${BASE_URL}/api/edges/bulk-update`;
+    console.log("--- [SERVICE] Intentando PATCH de relaciones a:", url);
+
+    const response = await fetch(url, {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ pid: parseInt(pid), updates, deletions })
+    });
+
+    if (!response.ok) {
+      console.error("--- [SERVICE] Status Error (Edges):", response.status);
+      const errorData = await response.json().catch(() => ({}));
+      throw new Error(errorData.error || `Error ${response.status}: Fallo al actualizar relaciones`);
+    }
+
+    return response.json();
+  },
+
+  /**
+   * Recupera el grafo completo y lo procesa para su uso en React Flow y componentes de UI.
+   */
   getGraphData: async (graphId: string) => {
     const response = await fetch(`${BASE_URL}/api/graph/${graphId}`);
     if (!response.ok) throw new Error("Error al obtener el grafo");
     const data = await response.json();
 
-    // Verificación de seguridad para evitar errores de carga
     if (!data.nodes || !Array.isArray(data.nodes)) {
       return { title: "Grafo vacío", processedNodes: [], rawEdges: [], peopleMap: {}, roadmap: [] };
     }
 
-    /**
-     * 1. Título y Mapeo de Personas
-     * Ajustado para leer 'type' (del formateador del backend) o 'labels'
-     */
+    // 1. Identificación del Título del Espacio
     const topicNode = data.nodes.find((n: any) => 
       n.type === "Topic" || (n.labels && n.labels.includes("Topic"))
     );
     const title = topicNode?.data?.title || topicNode?.properties?.title || "Grafo de Diálogo";
 
+    // 2. Mapeo de Colores por Participante
     const peopleMap: Record<string, string> = {};
     data.nodes
       .filter((n: any) => n.type === "User" || (n.labels && n.labels.includes("User")))
@@ -35,9 +79,7 @@ export const grafoService = {
         }
       });
 
-    /**
-     * 2. Procesar Opiniones y Roadmap
-     */
+    // 3. Procesamiento de Opiniones y Construcción del Roadmap (Secuencia Temporal)
     const opinionsRaw = data.nodes.filter((n: any) => 
       n.type === "Opinion" || (n.labels && n.labels.includes("Opinion"))
     );
@@ -53,15 +95,12 @@ export const grafoService = {
 
     sortedOpinions.forEach((op: any) => {
       const opProps = op.data || op.properties;
-      
-      // Identifica al autor buscando la relación "MADE_OPINION"
       const authorEdge = data.edges.find((e: any) => e.target === op.id && e.label === "MADE_OPINION");
       const author = authorEdge ? data.nodes.find((n: any) => n.id === authorEdge.source) : null;
       
       const authorName = author?.data?.name || author?.properties?.name || "Sistema";
       const authorColor = peopleMap[authorName] || "#57606f";
 
-      // Conceptos mencionados en esta opinión
       const conceptEdges = data.edges.filter((e: any) => e.source === op.id && e.label === "CONTAINS");
       
       conceptEdges.forEach((edge: any) => {
@@ -89,6 +128,7 @@ export const grafoService = {
             coloresMenciones: [authorColor],
             timestamp: opTime,
             menciones: [opTime],
+            authorName: authorName // Guardamos el primer autor para el modo edición
           };
         } else {
           conceptData[conceptNode.id].menciones.push(opTime);
@@ -97,9 +137,7 @@ export const grafoService = {
       });
     });
 
-    /**
-     * 3. Procesar Nodos de Concepto Finales
-     */
+    // 4. Procesamiento Final de Nodos de Concepto
     const processedNodes = data.nodes
       .filter((n: any) => n.type === "Concept" || (n.labels && n.labels.includes("Concept")))
       .map((n: any) => {
@@ -108,9 +146,10 @@ export const grafoService = {
         
         return {
           ...n,
-          // Aseguramos que data sea el contenedor principal para React Flow
           data: {
             ...currentProps,
+            label: currentProps.name || currentProps.label,
+            authorName: conceptData[cId]?.authorName || "Sistema",
             ronda: conceptData[cId]?.ronda || 1,
             color: conceptData[cId]?.colorOriginal || "#57606f",
             coloresMenciones: conceptData[cId]?.coloresMenciones || [],
