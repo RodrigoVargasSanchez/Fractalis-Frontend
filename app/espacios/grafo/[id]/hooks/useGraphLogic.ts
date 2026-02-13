@@ -34,10 +34,17 @@ export function useGraphLogic(graphId: string) {
   const fixedPositionsRef = useRef<Record<string, { x: number; y: number }>>({});
   const animatedEdgesRef = useRef<Set<string>>(new Set());
 
-  // Definición de refreshGraph envuelta en useCallback para estabilidad de dependencias
   const refreshGraph = useCallback(async () => {
     try {
       const data = await grafoService.getGraphData(graphId);
+
+      console.log("📦 [BACKEND COMPLETO]:", data);
+      console.log("📊 [NODOS PROCESADOS]:", data.processedNodes);
+      console.log("🎞️ [ROADMAP]:", data.roadmap);
+      
+      console.log("🔍 DATA RAW NODES:", data.processedNodes[0]?.data);
+
+
       setGraphTitle(data.title);
       setMovieSequence(data.roadmap);
       fixedPositionsRef.current = calculateNodePositions(data.processedNodes);
@@ -110,28 +117,52 @@ export function useGraphLogic(graphId: string) {
 
     const currentNodes: Node[] = masterData.nodes
       .filter((node) => {
-        const rondaNodo = node.data?.ronda || 1;
-        return isPlaying ? visibleIdsInSequence?.has(node.id) : rondaNodo <= rondaActual;
+        // Usamos el roadmap para saber cuándo nace el nodo si no viene en data
+        const stepInMovie = movieSequence.find(s => s.id.toString() === node.id.toString());
+        const rondaNacimiento = node.data?.ronda || stepInMovie?.ronda || 1;
+        
+        if (isPlaying) return visibleIdsInSequence?.has(node.id);
+        return rondaNacimiento <= rondaActual;
       })
+      // ... dentro del map de nodes
       .map((node) => {
         const nodeData = node.data || {};
         const isFocused = isPlaying && node.id === currentStep?.id;
-        const coloresActivos = isPlaying
-          ? movieSequence.slice(0, nodoActualIdx + 1).filter((s) => s.id === node.id).map((s) => s.authorColor)
-          : nodeData.coloresMenciones || [];
+        
+        // CALCULAMOS LAS MENCIONES HASTA EL MOMENTO ACTUAL (Play o Manual)
+        // Si no hay Play, filtramos la secuencia según la rondaActual seleccionada en el slider
+        const mencionesHastaAhora = movieSequence.filter((s) => {
+          const isSameNode = s.id.toString() === node.id.toString();
+          if (isPlaying) {
+            // Si suena la "película", cortamos en el índice actual
+            return isSameNode && movieSequence.indexOf(s) <= nodoActualIdx;
+          }
+          // Si está pausado, mostramos todo lo que pertenece a la ronda actual o anteriores
+          return isSameNode && s.ronda <= rondaActual;
+        });
+
+        const coloresActivos = mencionesHastaAhora.length > 0
+          ? mencionesHastaAhora.map((s) => s.authorColor)
+          : (nodeData.coloresMenciones || [nodeData.color || "#57606f"]);
+          
+        const stepInMovie = movieSequence.find(s => s.id.toString() === node.id.toString());
+        const rondaFinal = nodeData.ronda || stepInMovie?.ronda;
 
         return {
           id: node.id.toString(),
           type: "circle",
           data: {
+            ...nodeData,
             label: nodeData.name || nodeData.label,
-            color: nodeData.color,
-            ronda: nodeData.ronda,
+            ronda: rondaFinal,
             isFocused,
             mencionesCount: coloresActivos.length,
             coloresMenciones: coloresActivos,
-            scale: 1 + (coloresActivos.length - 1) * 0.2,
+            // Aumentamos ligeramente el impacto del crecimiento (0.2 en lugar de 0.15)
+            scale: 1 + (coloresActivos.length - 1) * 0.2, 
           },
+          // Elevamos el zIndex proporcionalmente a la importancia (menciones)
+          zIndex: isFocused ? 1000 : 10 + coloresActivos.length,
           position: fixedPositionsRef.current[node.id.toString()] || { x: 0, y: 0 },
         };
       });

@@ -3,7 +3,8 @@ import { cn } from "@/lib/utils";
 interface GraphHeaderProps {
   title: string;
   mainTab: string;
-  setMainTab: (tab: "grafo" | "intervenciones" | "editar") => void;
+  // Se añade "estadisticas" al tipo permitido
+  setMainTab: (tab: "grafo" | "intervenciones" | "editar" | "estadisticas") => void;
   graphView: string;
   setGraphView: (view: "polaridad" | "estructural") => void;
   editTab: string;
@@ -32,6 +33,7 @@ export function GraphHeader({
           >
             Análisis de Ideas
           </button>
+          
           <button 
             onClick={() => setMainTab("intervenciones")} 
             className={cn("pb-3 text-xs font-black uppercase tracking-[0.2em] transition-all",
@@ -40,6 +42,17 @@ export function GraphHeader({
           >
             Registro de Intervenciones
           </button>
+
+          {/* BOTÓN NUEVO: ESTADÍSTICAS */}
+          <button 
+            onClick={() => setMainTab("estadisticas")} 
+            className={cn("pb-3 text-xs font-black uppercase tracking-[0.2em] transition-all",
+              mainTab === "estadisticas" ? "text-[#1e90ff] border-b-2 border-[#1e90ff]" : "text-gray-500 hover:text-white"
+            )}
+          >
+            Estadísticas
+          </button>
+
           <button 
             onClick={() => setMainTab("editar")} 
             className={cn("pb-3 text-xs font-black uppercase tracking-[0.2em] transition-all",
@@ -49,6 +62,28 @@ export function GraphHeader({
             Editar
           </button>
         </div>
+
+        {/* SUB-PESTAÑAS: Aparecen en Editar y en Estadísticas */}
+        {(mainTab === "editar" || mainTab === "estadisticas") && (
+          <div className="flex gap-8 justify-center mb-2">
+            <button 
+              onClick={() => setEditTab("conceptos")}
+              className={cn("text-[10px] font-black uppercase tracking-[0.2em] transition-all",
+                editTab === "conceptos" ? "text-white" : "text-gray-600"
+              )}
+            >
+              Conceptos
+            </button>
+            <button 
+              onClick={() => setEditTab("relaciones")}
+              className={cn("text-[10px] font-black uppercase tracking-[0.2em] transition-all",
+                editTab === "relaciones" ? "text-white" : "text-gray-600"
+              )}
+            >
+              Relaciones
+            </button>
+          </div>
+        )}
 
         {mainTab === "grafo" && (
           <div className="flex gap-4 bg-black/40 p-1 rounded-full border border-white/10 mb-2">
@@ -67,27 +102,6 @@ export function GraphHeader({
               )}
             >
               Consenso y Disenso
-            </button>
-          </div>
-        )}
-
-        {mainTab === "editar" && (
-          <div className="flex gap-8 justify-center mb-2">
-            <button 
-              onClick={() => setEditTab("conceptos")}
-              className={cn("text-[10px] font-black uppercase tracking-[0.2em] transition-all",
-                editTab === "conceptos" ? "text-white" : "text-gray-600"
-              )}
-            >
-              Conceptos
-            </button>
-            <button 
-              onClick={() => setEditTab("relaciones")}
-              className={cn("text-[10px] font-black uppercase tracking-[0.2em] transition-all",
-                editTab === "relaciones" ? "text-white" : "text-gray-600"
-              )}
-            >
-              Relaciones
             </button>
           </div>
         )}

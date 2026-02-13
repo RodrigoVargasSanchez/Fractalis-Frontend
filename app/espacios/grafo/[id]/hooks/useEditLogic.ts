@@ -12,11 +12,8 @@ export function useEditLogic(id: string, masterData: any, refreshGraph: () => Pr
     const sorted = [...masterData.nodes].sort((a, b) => Number(a.id) - Number(b.id));
     setTempNodes(sorted);
 
-    const validTypes = RELATIONS_CONFIG.map(r => r.id.toUpperCase());
-    const filteredEdges = masterData.edges.filter((edge: any) => 
-      validTypes.includes(edge.label.toUpperCase())
-    );
-    setTempEdges(filteredEdges);
+    // Permitir todas las aristas que tengan metadatos de autoría
+    setTempEdges(masterData.edges);
     setDeletedEdgeIds([]);
   }, [masterData]);
 
@@ -40,6 +37,19 @@ export function useEditLogic(id: string, masterData: any, refreshGraph: () => Pr
       callback();
     } catch (error) {
       alert("Error al guardar conceptos.");
+    } finally {
+      setIsSaving(false);
+    }
+  };
+
+  const handleCreateNewConcept = async (name: string, opinionId: string) => {
+    if (!name.trim() || !opinionId) return;
+    setIsSaving(true);
+    try {
+      await grafoService.createConcept(id, name, opinionId);
+      await refreshGraph();
+    } catch (error) {
+      alert("Error al crear el concepto vinculado.");
     } finally {
       setIsSaving(false);
     }
@@ -76,6 +86,7 @@ export function useEditLogic(id: string, masterData: any, refreshGraph: () => Pr
     deletedEdgeIds, setDeletedEdgeIds,
     isSaving,
     handleSaveConcepts,
-    handleSaveRelationships
+    handleSaveRelationships,
+    handleCreateNewConcept
   };
 }

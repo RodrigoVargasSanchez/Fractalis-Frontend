@@ -1,6 +1,9 @@
 import { Handle, Position } from "reactflow";
 
 export const CircleNode = ({ data }: any) => {
+  if (data.isFocused) {
+    console.log(`Node ${data.label} data:`, data);
+  }
   const baseScale = data.scale || 1;
   const visualScale = data.isFocused ? baseScale * 1.3 : baseScale;
   

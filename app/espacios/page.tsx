@@ -5,6 +5,7 @@ import SortDropdown from "@/components/ui/SortDropdown";
 import Table from "@/components/dashboard/Table";
 import SearchBar from "@/components/ui/SearchBar";
 import { espaciosService, Espacio } from "@/services/espaciosService";
+import { StatsPanelView } from "@/components/graph/StatsPanelView";
 
 /**
  * Componente principal de la página de Espacios.
@@ -104,7 +105,7 @@ export default function EspaciosPage() {
           <SortDropdown onSort={setSortCriteria} />
         </div>
       </header>
-      
+
       {/* Sección principal que renderiza la tabla o el mensaje de ausencia de datos */}
       <main className="space-y-6">
         <Table data={processedData} onDelete={handleEliminar} />
