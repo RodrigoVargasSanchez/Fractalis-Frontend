@@ -42,6 +42,8 @@ export function useGraphLogic(graphId: string) {
   const refreshGraph = useCallback(async () => {
     try {
       const data = await grafoService.getGraphData(graphId);
+      console.log("🔍 [DATA ORIGINAL DEL SERVICIO]:", data); // <--- LOG AQUÍ
+      console.log(data)
       setGraphTitle(data.title);
       setMovieSequence(data.roadmap);
       fixedPositionsRef.current = calculateNodePositions(data.processedNodes);
@@ -197,6 +199,8 @@ export function useGraphLogic(graphId: string) {
             setTimeout(() => animatedEdgesRef.current.add(edgeId), 100);
         }
 
+        console.log("🔗 [PROCESANDO ARISTA INDIVIDUAL]:", edge); // <--- LOG AQUÍ
+
         return {
             id: edgeId,
             source,
@@ -204,6 +208,7 @@ export function useGraphLogic(graphId: string) {
             type: "interactive",
             data: {
                 label: edge.label || edge.type,
+                authorName: edge.data?.author_name || edge.author_name || "Desconocido",
                 // Pasamos esta bandera para que el CSS sepa si invertir la animación
                 reverseAnim: shouldReverse 
             },
