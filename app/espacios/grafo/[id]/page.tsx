@@ -24,9 +24,11 @@ import { Participants } from "@/components/graph/Participants";
 import { GraphControls } from "@/components/graph/GraphControls";
 import { IntervencionesTable } from "@/components/graph/IntervencionesTable";
 import { RelationLegend } from "@/components/graph/RelationLegend";
+import { InteractiveEdge } from "@/components/graph/InteractiveEdge";
 import { cn } from "@/lib/utils";
 
 const nodeTypes = { circle: CircleNode };
+const edgeTypes = {interactive: InteractiveEdge,};
 
 function GrafoContent({ resolvedParams }: any) {
   const containerRef = useRef<HTMLDivElement>(null);
@@ -133,7 +135,8 @@ function GrafoContent({ resolvedParams }: any) {
             <ReactFlow 
               nodes={logic.nodes} 
               edges={logic.edges} 
-              nodeTypes={nodeTypes} 
+              nodeTypes={nodeTypes}
+              edgeTypes={edgeTypes}
               onNodesChange={logic.onNodesChange} 
               onEdgesChange={logic.onEdgesChange} 
               minZoom={0.05} 

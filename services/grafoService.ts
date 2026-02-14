@@ -98,6 +98,7 @@ export const grafoService = {
     const response = await fetch(`${BASE_URL}/api/graph/${graphId}`);
     if (!response.ok) throw new Error("Error al obtener el grafo");
     const data = await response.json();
+    console.log("🔥 ARISTAS CRUDAS DESDE EL BACKEND:", data.edges);
 
     // Verificación de integridad de datos
     if (!data.nodes || !Array.isArray(data.nodes)) {
