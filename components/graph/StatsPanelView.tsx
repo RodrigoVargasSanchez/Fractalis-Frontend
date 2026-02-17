@@ -1,5 +1,5 @@
+import { useMemo } from "react";
 import { cn } from "@/lib/utils";
-// Importamos los colores desde tu archivo de constantes
 import { RELATION_COLORS } from "@/app/espacios/grafo/[id]/constants";
 
 interface StatsPanelViewProps {
@@ -9,14 +9,61 @@ interface StatsPanelViewProps {
   totalObservations?: number;
 }
 
+interface GroupedEdge {
+  sourceId: string;
+  targetId: string;
+  sourceLabel: string;
+  targetLabel: string;
+  count: number;
+  types: Record<string, number>;
+}
+
 export function StatsPanelView({ activeTab, nodes, edges, totalObservations = 1 }: StatsPanelViewProps) {
   
-  const getIntencionalidad = (val: number, frecuencia: number) => {
-    return frecuencia > 0 ? val / frecuencia : 0;
+  // Función para obtener el nombre legible del nodo
+  const getNodeLabel = (id: string) => {
+    const node = nodes.find(n => n.id === id);
+    return node?.data?.label || node?.label || id;
   };
 
+  const groupedEdges = useMemo<GroupedEdge[]>(() => {
+    if (activeTab !== "relaciones") return [];
+
+    const groups: Record<string, GroupedEdge> = {};
+
+    // Lista de etiquetas estructurales a omitir en la tabla de contenido
+    const blacklistedLabels = ['CREATED', 'ABOUT_TOPIC', 'HAS_CONCEPT', 'MADE_OPINION', 'CONTAINS'];
+
+    edges.forEach((edge) => {
+      if (blacklistedLabels.includes(edge.label)) return;
+
+      const key = `${edge.source}-${edge.target}`;
+      
+      if (!groups[key]) {
+        groups[key] = {
+          sourceId: edge.source,
+          targetId: edge.target,
+          sourceLabel: getNodeLabel(edge.source),
+          targetLabel: getNodeLabel(edge.target),
+          count: 0,
+          types: {},
+        };
+      }
+
+      groups[key].count += 1;
+      const label = edge.label || "Sin tipo";
+      groups[key].types[label] = (groups[key].types[label] || 0) + 1;
+    });
+
+    return Object.values(groups);
+  }, [edges, nodes, activeTab]);
+
   const getFrecuenciaNormalizada = (frecuencia: number) => {
-    return (frecuencia / totalObservations).toFixed(2);
+    return (frecuencia / (totalObservations || 1)).toFixed(2);
+  };
+
+  const getIntencionalidad = (val: number, frecuencia: number) => {
+    return frecuencia > 0 ? val / frecuencia : 0;
   };
 
   return (
@@ -41,7 +88,7 @@ export function StatsPanelView({ activeTab, nodes, edges, totalObservations = 1 
                 return (
                   <tr key={idx} className="bg-white/5 hover:bg-white/10 transition-colors group">
                     <td className="py-4 pl-6 rounded-l-2xl border-l border-y border-white/5">
-                      <span className="font-black text-sm uppercase italic group-hover:text-[#1e90ff] transition-colors">
+                      <span className="font-black text-sm uppercase italic group-hover:text-[#1e90ff] transition-colors block max-w-md">
                         {node.label || node.data?.label || node.id}
                       </span>
                     </td>
@@ -66,52 +113,65 @@ export function StatsPanelView({ activeTab, nodes, edges, totalObservations = 1 
           <table className="w-full text-left border-separate border-spacing-y-2">
             <thead>
               <tr className="text-[10px] uppercase tracking-[0.3em] text-gray-500">
-                <th className="pb-4 pl-6">Origen</th>
-                <th className="pb-4">Destino</th>
-                <th className="pb-4 text-center">Frecuencia</th>
-                <th className="pb-4 text-center">Tipo de Relación</th>
+                <th className="pb-4 pl-6">Concepto Origen</th>
+                <th className="pb-4">Concepto Destino</th>
+                <th className="pb-4 text-center">N° Relaciones</th>
+                <th className="pb-4 text-center">Tipos de Relación</th>
               </tr>
             </thead>
             <tbody>
-              {edges.map((edge, idx) => {
-                const sourceNode = nodes.find(n => n.id === edge.source);
-                const targetNode = nodes.find(n => n.id === edge.target);
-                
-                // Normalizamos el label a minúsculas para que coincida con las llaves de RELATION_COLORS
-                const relationType = (edge.label || "").toLowerCase();
-                // Obtenemos el color del archivo de constantes, si no existe usamos un gris por defecto
-                const badgeColor = RELATION_COLORS[relationType] || "#4B5563";
-
-                return (
-                  <tr key={idx} className="bg-white/5 hover:bg-white/10 transition-colors">
+              {groupedEdges.length === 0 ? (
+                <tr>
+                  <td colSpan={4} className="text-center py-20 text-gray-500 italic">
+                    No hay relaciones semánticas detectadas.
+                  </td>
+                </tr>
+              ) : (
+                groupedEdges.map((group, idx) => (
+                  <tr key={idx} className="bg-white/5 hover:bg-white/10 transition-colors group">
                     <td className="py-4 pl-6 rounded-l-2xl border-l border-y border-white/5">
-                      <span className="text-white font-bold text-xs uppercase">
-                        {sourceNode?.label || sourceNode?.data?.label || edge.source}
+                      <span className="text-white font-bold text-[11px] uppercase block max-w-[280px] leading-tight group-hover:text-[#1e90ff] transition-colors">
+                        {group.sourceLabel}
                       </span>
                     </td>
                     <td className="py-4 border-y border-white/5">
-                      <span className="text-gray-300 font-bold text-xs uppercase">
-                        {targetNode?.label || targetNode?.data?.label || edge.target}
+                      <span className="text-gray-400 font-bold text-[11px] uppercase block max-w-[280px] leading-tight">
+                        {group.targetLabel}
                       </span>
                     </td>
-                    <td className="py-4 border-y border-white/5 text-center font-mono text-[#1e90ff]">
-                      {getFrecuenciaNormalizada(edge.frecuencia || 1)}
+                    <td className="py-4 border-y border-white/5 text-center font-mono">
+                      <div className="flex flex-col">
+                        <span className="text-[#1e90ff] text-base font-black">{group.count}</span>
+                        <span className="text-[9px] text-gray-500 opacity-70">f: {getFrecuenciaNormalizada(group.count)}</span>
+                      </div>
                     </td>
-                    <td className="py-4 rounded-r-2xl border-r border-y border-white/5 text-center">
-                      <span 
-                        className="px-3 py-1 rounded-full text-[9px] font-black uppercase tracking-tighter border"
-                        style={{ 
-                          backgroundColor: `${badgeColor}20`, // Color con 20% de opacidad para el fondo
-                          color: badgeColor,                 // Color sólido para el texto
-                          borderColor: `${badgeColor}40`      // Color con 40% de opacidad para el borde
-                        }}
-                      >
-                        {edge.label || "Sin tipo"}
-                      </span>
+                    <td className="py-4 rounded-r-2xl border-r border-y border-white/5">
+                      <div className="flex flex-wrap justify-center gap-2 px-4">
+                        {Object.entries(group.types).map(([label, count]) => {
+                          const relationType = label.toLowerCase();
+                          const color = RELATION_COLORS[relationType] || "#4B5563";
+                          return (
+                            <span 
+                              key={label}
+                              className="flex items-center gap-1.5 px-2 py-1 rounded-md text-[9px] font-black border"
+                              style={{ 
+                                backgroundColor: `${color}15`, 
+                                color: color,
+                                borderColor: `${color}40`
+                              }}
+                            >
+                              {label}
+                              <span className="bg-white/20 px-1 rounded text-white">
+                                {Number(count)}
+                              </span>
+                            </span>
+                          );
+                        })}
+                      </div>
                     </td>
                   </tr>
-                );
-              })}
+                ))
+              )}
             </tbody>
           </table>
         )}
