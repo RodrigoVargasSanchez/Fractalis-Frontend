@@ -161,12 +161,17 @@ function GrafoContent({ resolvedParams }: any) {
         ) : mainTab === "intervenciones" ? (
           <IntervencionesTable movieSequence={logic.movieSequence} />
         ) : mainTab === "estadisticas" ? (
-          <StatsPanelView 
-            activeTab={editTab} // "conceptos" o "relaciones"
-            nodes={logic.masterData.nodes} // Catálogo para buscar los nombres (labels)
-            edges={tempEdges} // Recibe el mismo argumento que el EditPanelView
-            totalObservations={logic.maxRondas} // Usado para normalizar frecuencia (N)
-          />
+<StatsPanelView 
+  activeTab={editTab}
+  nodes={logic.nodes}
+  edges={logic.edges}
+  relationNodes={logic.masterData.nodes}
+  relationEdges={tempEdges}
+  totalObservations={logic.maxRondas}
+/>
+
+
+
         ) : (
           <EditPanelView
             pid={resolvedParams.id}

@@ -44,27 +44,62 @@ export const grafoService = {
     return data;
   },
 
+
+/**
+ * Obtiene métricas de red (grado, comunidad, centralidad) calculadas en el servidor.
+ */
+getAdvancedStats: async (pid: string | number) => {
+  const response = await fetch(`${BASE_URL}/api/graph/${pid}/stats`);
+  if (!response.ok) throw new Error("Error al obtener estadísticas avanzadas");
+  return response.json();
+},
+
   /**
    * Crea una relación con atribución de autoría.
    */
-  createEdge: async (pid: string | number, sourceId: string, targetId: string, type: string, opinionId: string) => {
-    const url = `${BASE_URL}/api/edges`;
-    const response = await fetch(url, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ 
-        pid: typeof pid === "string" ? parseInt(pid) : pid,
-        sourceId, 
-        targetId, 
-        type, 
-        opinionId 
-      }),
-    });
+createEdge: async (
+  pid: string | number,
+  sourceId: string,
+  targetId: string,
+  type: string,
+  opinionId: string
+) => {
+  const url = `${BASE_URL}/api/edges`;
 
-    const data = await response.json().catch(() => ({}));
-    if (!response.ok) throw new Error(data.error || "No se pudo crear la relación");
-    return data;
-  },
+  const response = await fetch(url, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({
+      pid: typeof pid === "string" ? parseInt(pid) : pid,
+      sourceId,
+      targetId,
+      type,
+      opinionId,
+    }),
+  });
+
+  const data = await response.json().catch(() => ({}));
+
+  // 🔥 MANEJO ESPECÍFICO 409
+  if (response.status === 409) {
+    return {
+      success: false,
+      duplicate: true,
+      message: data.error,
+      existingEdgeId: data.existingEdgeId,
+    };
+  }
+
+  if (!response.ok) {
+    throw new Error(data.error || "No se pudo crear la relación");
+  }
+
+  return {
+    success: true,
+    edgeId: data.edgeId,
+  };
+},
+
 
   /**
    * Envía una solicitud PATCH para actualizar tipos de relaciones o eliminar aristas.

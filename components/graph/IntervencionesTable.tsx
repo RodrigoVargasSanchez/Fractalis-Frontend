@@ -17,7 +17,7 @@ export function IntervencionesTable({ movieSequence }: { movieSequence: any[] })
   }, [movieSequence]);
 
   return (
-    <div className="p-8 max-w-7xl mx-auto animate-fade-in flex flex-col h-[75vh]">
+    <div className="p-8 w-full animate-fade-in flex flex-col h-[75vh]">
       <div className="bg-[#111] rounded-[32px] border border-white/10 shadow-2xl overflow-hidden flex flex-col flex-1">
         <div className="bg-white/5 border-b border-white/10 flex">
           <div className="p-5 w-[20%] text-[#1e90ff] uppercase text-xs font-black tracking-widest">Autor</div>

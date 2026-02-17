@@ -32,6 +32,7 @@ export function useGraphLogic(graphId: string) {
   const [nodoActualIdx, setNodoActualIdx] = useState(-1);
   const [showEdges, setShowEdges] = useState(true);
   const [relationFilter, setRelationFilter] = useState<"polaridad" | "otros" | "todos">("todos");
+  const [advancedStats, setAdvancedStats] = useState<any[]>([]);
 
   const [nodes, setNodes, onNodesChange] = useNodesState([]);
   const [edges, setEdges, onEdgesChange] = useEdgesState([]);
@@ -44,6 +45,14 @@ export function useGraphLogic(graphId: string) {
       const data = await grafoService.getGraphData(graphId);
       console.log("🔍 [DATA ORIGINAL DEL SERVICIO]:", data); // <--- LOG AQUÍ
       console.log(data)
+
+      try {
+        const stats = await grafoService.getAdvancedStats(graphId);
+        setAdvancedStats(stats);
+      } catch (err) {
+        console.error("No se pudieron cargar las estadísticas avanzadas:", err);
+      }
+
       setGraphTitle(data.title);
       setMovieSequence(data.roadmap);
 
@@ -131,6 +140,8 @@ export function useGraphLogic(graphId: string) {
         const nodeIdStr = node.id.toString();
         const nodeData = node.data || {};
         const isFocused = isPlaying && nodeIdStr === currentStepIdStr;
+
+        const stat = advancedStats.find(s => s.id === nodeIdStr);
         
         const stepInMovie = movieSequence.find(s => s.id.toString() === nodeIdStr);
         const rondaDeAparicion = nodeData.ronda || stepInMovie?.ronda || 1;
@@ -157,6 +168,10 @@ export function useGraphLogic(graphId: string) {
             mencionesCount: coloresActivos.length,
             coloresMenciones: coloresActivos,
             scale: 1 + (coloresActivos.length - 1) * 0.2,
+
+            grado: stat?.grado || 0,
+            centralidad: stat?.centralidad || 0,
+            comunidad: stat?.comunidad ?? 0,
           },
           zIndex: isFocused ? 1000 : 10 + coloresActivos.length,
           position: fixedPositionsRef.current[nodeIdStr] || { x: 0, y: 0 },

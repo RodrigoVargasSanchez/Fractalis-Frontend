@@ -4,8 +4,15 @@ import { RELATION_COLORS } from "@/app/espacios/grafo/[id]/constants";
 
 interface StatsPanelViewProps {
   activeTab: "conceptos" | "relaciones";
+
+  // Para estadísticas de conceptos
   nodes: any[];
   edges: any[];
+
+  // Para estadísticas de relaciones (los que funcionaban antes)
+  relationNodes: any[];
+  relationEdges: any[];
+
   totalObservations?: number;
 }
 
@@ -18,11 +25,21 @@ interface GroupedEdge {
   types: Record<string, number>;
 }
 
-export function StatsPanelView({ activeTab, nodes, edges, totalObservations = 1 }: StatsPanelViewProps) {
-  
-  // Función para obtener el nombre legible del nodo
+export function StatsPanelView({
+  activeTab,
+  nodes,
+  edges,
+  relationNodes,
+  relationEdges,
+  totalObservations = 1
+}: StatsPanelViewProps) {
+
+  // 🔥 Selección interna correcta
+  const workingNodes = activeTab === "relaciones" ? relationNodes : nodes;
+  const workingEdges = activeTab === "relaciones" ? relationEdges : edges;
+
   const getNodeLabel = (id: string) => {
-    const node = nodes.find(n => n.id === id);
+    const node = workingNodes.find(n => n.id === id);
     return node?.data?.label || node?.label || id;
   };
 
@@ -30,15 +47,13 @@ export function StatsPanelView({ activeTab, nodes, edges, totalObservations = 1 
     if (activeTab !== "relaciones") return [];
 
     const groups: Record<string, GroupedEdge> = {};
-
-    // Lista de etiquetas estructurales a omitir en la tabla de contenido
     const blacklistedLabels = ['CREATED', 'ABOUT_TOPIC', 'HAS_CONCEPT', 'MADE_OPINION', 'CONTAINS'];
 
-    edges.forEach((edge) => {
+    workingEdges.forEach((edge) => {
       if (blacklistedLabels.includes(edge.label)) return;
 
       const key = `${edge.source}-${edge.target}`;
-      
+
       if (!groups[key]) {
         groups[key] = {
           sourceId: edge.source,
@@ -56,60 +71,62 @@ export function StatsPanelView({ activeTab, nodes, edges, totalObservations = 1 
     });
 
     return Object.values(groups);
-  }, [edges, nodes, activeTab]);
+  }, [workingEdges, workingNodes, activeTab]);
 
   const getFrecuenciaNormalizada = (frecuencia: number) => {
     return (frecuencia / (totalObservations || 1)).toFixed(2);
   };
 
-  const getIntencionalidad = (val: number, frecuencia: number) => {
-    return frecuencia > 0 ? val / frecuencia : 0;
-  };
-
   return (
     <div className="mx-8 my-4 bg-[#0d0d0d] rounded-[40px] border border-white/10 shadow-2xl h-[70vh] overflow-hidden flex flex-col animate-fade-in">
       <div className="flex-1 overflow-auto custom-scrollbar p-8">
+
         {activeTab === "conceptos" ? (
+
           <table className="w-full text-left border-separate border-spacing-y-2">
             <thead>
               <tr className="text-[10px] uppercase tracking-[0.3em] text-gray-500">
                 <th className="pb-4 pl-6">Concepto</th>
-                <th className="pb-4">Frecuencia (Uso)</th>
-                <th className="pb-4">Intencionalidad (Promedio)</th>
-                <th className="pb-4">Grado Acuerdo</th>
+                <th className="pb-4">Grado</th>
+                <th className="pb-4">Centralidad</th>
+                <th className="pb-4">Comunidad</th>
               </tr>
             </thead>
             <tbody>
               {nodes.map((node, idx) => {
-                const nodeEdges = edges.filter(e => e.source === node.id || e.target === node.id);
-                const frecuencia = node.frecuencia || nodeEdges.length;
-                const intencionalidad = getIntencionalidad(node.sumValues || 0, frecuencia);
+                const frecuencia = node.data?.grado || 0;
+                const centralidad = node.data?.centralidad || 0;
+                const comunidadId = node.data?.comunidad ?? 0;
 
                 return (
                   <tr key={idx} className="bg-white/5 hover:bg-white/10 transition-colors group">
                     <td className="py-4 pl-6 rounded-l-2xl border-l border-y border-white/5">
                       <span className="font-black text-sm uppercase italic group-hover:text-[#1e90ff] transition-colors block max-w-md">
-                        {node.label || node.data?.label || node.id}
+                        {node.data?.label || node.label || node.id}
                       </span>
                     </td>
                     <td className="py-4 border-y border-white/5 font-mono text-[#1e90ff]">
-                      {getFrecuenciaNormalizada(frecuencia)}
+                      {frecuencia}
+                      <span className="text-[10px] text-gray-500 ml-2">
+                        ({getFrecuenciaNormalizada(frecuencia)})
+                      </span>
                     </td>
-                    <td className={cn(
-                      "py-4 border-y border-white/5 font-mono font-bold",
-                      intencionalidad > 0 ? "text-blue-400" : intencionalidad < 0 ? "text-red-400" : "text-gray-400"
-                    )}>
-                      {intencionalidad.toFixed(2)}
+                    <td className="py-4 border-y border-white/5 font-mono font-bold text-blue-400">
+                      {centralidad.toFixed(3)}
                     </td>
                     <td className="py-4 rounded-r-2xl border-r border-y border-white/5 text-gray-500 uppercase text-[10px] font-bold">
-                      {node.kappaAgreement || "0.00"}
+                      <span className="bg-white/10 px-2 py-1 rounded">
+                        GRUPO {comunidadId}
+                      </span>
                     </td>
                   </tr>
                 );
               })}
             </tbody>
           </table>
+
         ) : (
+
           <table className="w-full text-left border-separate border-spacing-y-2">
             <thead>
               <tr className="text-[10px] uppercase tracking-[0.3em] text-gray-500">
@@ -142,7 +159,9 @@ export function StatsPanelView({ activeTab, nodes, edges, totalObservations = 1 
                     <td className="py-4 border-y border-white/5 text-center font-mono">
                       <div className="flex flex-col">
                         <span className="text-[#1e90ff] text-base font-black">{group.count}</span>
-                        <span className="text-[9px] text-gray-500 opacity-70">f: {getFrecuenciaNormalizada(group.count)}</span>
+                        <span className="text-[9px] text-gray-500 opacity-70">
+                          f: {getFrecuenciaNormalizada(group.count)}
+                        </span>
                       </div>
                     </td>
                     <td className="py-4 rounded-r-2xl border-r border-y border-white/5">
@@ -151,11 +170,11 @@ export function StatsPanelView({ activeTab, nodes, edges, totalObservations = 1 
                           const relationType = label.toLowerCase();
                           const color = RELATION_COLORS[relationType] || "#4B5563";
                           return (
-                            <span 
+                            <span
                               key={label}
                               className="flex items-center gap-1.5 px-2 py-1 rounded-md text-[9px] font-black border"
-                              style={{ 
-                                backgroundColor: `${color}15`, 
+                              style={{
+                                backgroundColor: `${color}15`,
                                 color: color,
                                 borderColor: `${color}40`
                               }}
@@ -174,7 +193,9 @@ export function StatsPanelView({ activeTab, nodes, edges, totalObservations = 1 
               )}
             </tbody>
           </table>
+
         )}
+
       </div>
     </div>
   );
