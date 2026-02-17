@@ -24,6 +24,7 @@ export const RELATION_COLORS: Record<string, string> = {
   consecuencia: "#F5F5F5",   // Blanco
   sinergia: "#008000",       // Morado vivo
   antagonismo: "#FF1744",    // Rojo intenso
+  conflicto: "#a855f7", // Morado para mezcla
 };
 
 

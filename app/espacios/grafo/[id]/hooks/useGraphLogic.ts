@@ -46,6 +46,7 @@ export function useGraphLogic(graphId: string) {
       console.log(data)
       setGraphTitle(data.title);
       setMovieSequence(data.roadmap);
+
       fixedPositionsRef.current = calculateNodePositions(data.processedNodes);
       setMasterData({ nodes: data.processedNodes, edges: data.rawEdges, personColors: data.peopleMap });
 
@@ -111,6 +112,8 @@ export function useGraphLogic(graphId: string) {
     const currentStep = movieSequence[nodoActualIdx];
     const currentStepIdStr = currentStep?.id?.toString();
 
+    console.log("🎬 CURRENT STEP:", currentStep);
+
     // 1. PROCESAMIENTO DE NODOS
     const currentNodes: Node[] = masterData.nodes
       .filter((node) => {
@@ -162,66 +165,169 @@ export function useGraphLogic(graphId: string) {
 
     const currentVisibleIds = new Set(currentNodes.map((n) => n.id));
 
-    // 2. PROCESAMIENTO DE ARISTAS (Lógica de Animación Corregida)
-    const currentEdges: Edge[] = masterData.edges
-      .filter((e) => {
-        const sourceId = e.source.toString();
-        const targetId = e.target.toString();
-        if (!currentVisibleIds.has(sourceId) || !currentVisibleIds.has(targetId)) return false;
 
-        const typeKey = (e.label || e.type || "").toLowerCase();
-        const isPolaridad = ["sinergia", "antagonismo", "contradicts", "complementary_to"].includes(typeKey);
-        if (relationFilter === "polaridad" && !isPolaridad) return false;
-        if (relationFilter === "otros" && isPolaridad) return false;
+// 2. PROCESAMIENTO DE ARISTAS (CONSOLIDACIÓN CON ANIMACIÓN ESTABLE)
+    const consolidatedMap: Record<string, any> = {};
+    const otherEdges: Edge[] = [];
+    const pairCount: Record<string, number> = {};
 
-        const edgeId = `e-${e.id}`;
-        if (isPlaying && !showEdges && !animatedEdgesRef.current.has(edgeId)) return false;
+    masterData.edges.forEach((edge) => {
+      const sourceId = edge.source.toString();
+      const targetId = edge.target.toString();
 
-        return RELATION_COLORS[typeKey] || e.type === "CONTRADICTS" || e.type === "COMPLEMENTARY_TO";
-      })
-      .map((edge) => {
+      if (!currentVisibleIds.has(sourceId) || !currentVisibleIds.has(targetId)) return;
 
-        const edgeId = `e-${edge.id}`;
-        const color = getEdgeColor(edge.label || edge.type || "");
+      const typeKey = (edge.label || edge.type || "").toLowerCase();
+      const isPolaridad = ["sinergia", "antagonismo", "contradicts", "complementary_to"].includes(typeKey);
 
-        // Mantener SIEMPRE los originales para que la curva no cambie de forma
-        const source = edge.source.toString();
-        const target = edge.target.toString();
+      if (relationFilter === "polaridad" && !isPolaridad) return;
+      if (relationFilter === "otros" && isPolaridad) return;
 
-        const isConnectedToCurrentStep = isPlaying && currentStepIdStr && (source === currentStepIdStr || target === currentStepIdStr);
-        const hasBeenAnimated = animatedEdgesRef.current.has(edgeId);
+      const edgeId = `e-${edge.id}`;
+      
+      if (isPolaridad) {
+        // Usamos una llave que siempre sea igual para el mismo par de nodos
+        const pairKey = [sourceId, targetId].sort().join("-");
+        const consolidatedId = `e-consolidated-${pairKey}`;
 
-        // Determinamos si debe crecer "al revés" (del target al source)
-        // solo para efectos visuales de CSS si el nodo nuevo es el target
-        const shouldReverse = isPlaying && target === currentStepIdStr;
+        // Lógica de visibilidad en playback para consolidadas
+        if (isPlaying && !showEdges && !animatedEdgesRef.current.has(edgeId)) return;
 
-        if (isConnectedToCurrentStep && !hasBeenAnimated && showEdges) {
-            setTimeout(() => animatedEdgesRef.current.add(edgeId), 100);
-        }
-
-        console.log("🔗 [PROCESANDO ARISTA INDIVIDUAL]:", edge); // <--- LOG AQUÍ
-
-        return {
-            id: edgeId,
-            source,
-            target,
+        if (!consolidatedMap[pairKey]) {
+          consolidatedMap[pairKey] = {
+            id: consolidatedId,
+            source: sourceId,
+            target: targetId,
             type: "interactive",
             data: {
-                label: edge.label || edge.type,
-                authorName: edge.data?.author_name || edge.author_name || "Desconocido",
-                // Pasamos esta bandera para que el CSS sepa si invertir la animación
-                reverseAnim: shouldReverse 
-            },
-            className: (isConnectedToCurrentStep && !hasBeenAnimated && showEdges) 
-                ? (shouldReverse ? "growing-edge reverse" : "growing-edge") 
-                : "edge-static",
-            style: { stroke: color, strokeWidth: 3.5, opacity: 0.8 },
-            markerEnd: { type: MarkerType.ArrowClosed, width: 15, height: 15, color },
-        };
-      });
+              label: "Relación de Polaridad",
+              sinergias: 0,
+              antagonismos: 0,
+              authors: [],
+              isConsolidated: true,
+              edgeIndex: 0,
+              lastEdgeId: edgeId // Guardamos el ID de la última arista real para animar
+            }
+          };
+        }
 
-    setNodes(currentNodes);
-    setEdges(currentEdges);
+        const isPositiva = typeKey === "sinergia" || typeKey === "complementary_to";
+        if (isPositiva) consolidatedMap[pairKey].data.sinergias++;
+        else consolidatedMap[pairKey].data.antagonismos++;
+
+        consolidatedMap[pairKey].data.authors.push({
+          name: edge.data?.author_name || edge.author_name || "Anónimo",
+          type: typeKey
+        });
+
+        // Verificamos si esta arista específica es la que debe disparar la animación ahora
+        const isConnected = isPlaying && currentStepIdStr && (sourceId === currentStepIdStr || targetId === currentStepIdStr);
+        if (isConnected && !animatedEdgesRef.current.has(edgeId) && showEdges) {
+            setTimeout(() => {
+                animatedEdgesRef.current.add(edgeId);
+            }, 100);
+        }
+
+// ... dentro del loop de masterData.edges.forEach ...
+} else {
+    const edgeId = `e-${edge.id}`;
+
+    // 1. Si ya se animó, la mostramos siempre. Si no, esperamos al momento del playback.
+    const hasBeenAnimated = animatedEdgesRef.current.has(edgeId);
+    if (isPlaying && !showEdges && !hasBeenAnimated) return;
+
+    const pairKeyNormal = [sourceId, targetId].sort().join("-");
+    pairCount[pairKeyNormal] = (pairCount[pairKeyNormal] || 0) + 1;
+    
+    const staggeredIndex = (pairCount[pairKeyNormal] % 2 === 0 ? 1 : -1) * Math.ceil(pairCount[pairKeyNormal] / 2);
+
+    const color = getEdgeColor(typeKey);
+    const isConnected = isPlaying && currentStepIdStr && (sourceId === currentStepIdStr || targetId === currentStepIdStr);
+    const shouldReverse = isPlaying && targetId === currentStepIdStr;
+
+    // 2. Disparar la animación SOLO si es el momento justo y NO se ha animado antes
+    if (isConnected && !hasBeenAnimated && showEdges) {
+        setTimeout(() => {
+            animatedEdgesRef.current.add(edgeId);
+        }, 50);
+    }
+
+    // 3. LA CLAVE: Si ya está en el Set de animados, usamos "edge-static"
+    // Solo usamos "growing-edge" si es la primera vez (isConnected && !hasBeenAnimated)
+    const animationClass = (isConnected && !hasBeenAnimated && showEdges)
+        ? (shouldReverse ? "growing-edge reverse" : "growing-edge")
+        : "edge-static";
+
+    otherEdges.push({
+        id: edgeId,
+        source: sourceId,
+        target: targetId,
+        type: "interactive",
+        data: {
+            label: edge.label || edge.type,
+            authorName: edge.data?.author_name || edge.author_name || "Desconocido",
+            edgeIndex: staggeredIndex,
+            isConsolidated: false,
+            color: color,
+        },
+        className: animationClass, 
+        style: { stroke: color, strokeWidth: 3.5, opacity: 0.8 },
+        markerEnd: { type: MarkerType.ArrowClosed, width: 15, height: 15, color },
+    });
+}
+    });
+
+// ... (mantenemos el inicio del useEffect y el llenado de consolidatedMap igual)
+
+// TRANSFORMACIÓN FINAL CON LÓGICA DE COLOR, ETIQUETA Y ANIMACIÓN RECUPERADA
+const processedConsolidated = Object.values(consolidatedMap).map((cEdge) => {
+  const { sinergias, antagonismos, lastEdgeId } = cEdge.data;
+  const total = sinergias + antagonismos;
+  
+  // 1. Determinación de Color y Label
+  let color = RELATION_COLORS.conflicto; 
+  let label = `Diálogo Mixto (${sinergias}S | ${antagonismos}A)`;
+
+  if (antagonismos === 0) {
+    color = RELATION_COLORS.sinergia;
+    label = `Sinergia Colectiva (${sinergias})`;
+  } else if (sinergias === 0) {
+    color = RELATION_COLORS.antagonismo;
+    label = `Antagonismo Colectivo (${antagonismos})`;
+  }
+
+  // 2. Lógica de Animación (RECUPERADA)
+  // Verificamos si la última intervención que compone esta arista consolidada se está animando
+  const isNew = isPlaying && lastEdgeId && !animatedEdgesRef.current.has(lastEdgeId);
+  const shouldReverse = isPlaying && cEdge.target === currentStepIdStr;
+
+  // Clase CSS para el efecto de crecimiento
+  const animationClassName = isNew 
+    ? (shouldReverse ? "growing-edge reverse" : "growing-edge") 
+    : "edge-static";
+
+  return {
+    ...cEdge,
+    className: animationClassName, // Inyectamos la clase de animación
+    data: {
+      ...cEdge.data,
+      label,
+      color,
+      reverseAnim: shouldReverse // Pasamos la dirección por si el CSS la necesita
+    },
+    style: { 
+      stroke: color, 
+      // Usamos el grosor dinámico que definimos (puedes ajustar el * 2 o * 5 aquí)
+      strokeWidth: 3.5 + (total - 1) * 5, 
+      opacity: 0.9,
+      // La transición de stroke-width permite que la arista "engorde" suavemente
+      transition: 'stroke 0.5s ease, stroke-width 0.5s ease'
+    },
+  };
+});
+
+setNodes(currentNodes);
+setEdges([...processedConsolidated, ...otherEdges]);
   }, [nodoActualIdx, rondaActual, isPlaying, masterData, movieSequence, setNodes, setEdges, showEdges, relationFilter]);
 
   return {
@@ -230,5 +336,5 @@ export function useGraphLogic(graphId: string) {
     isPlaying, setIsPlaying, velocidad, setVelocidad,
     masterData, nodoActualIdx, setNodoActualIdx, movieSequence,
     relationFilter, setRelationFilter, refreshGraph
-  };
+  }
 }

@@ -7,12 +7,11 @@ interface RelationLegendProps {
 
 export const RelationLegend = ({ filter = "todos" }: RelationLegendProps) => {
   // 1. Definimos qué llaves pertenecen a la categoría de "polaridad"
-  const polaridadKeys = ["sinergia", "antagonismo", "contradicts", "complementary_to"];
+  const polaridadKeys = ["sinergia", "antagonismo", "conflicto"];
 
   // 2. Filtramos las entradas de RELATION_COLORS según el prop 'filter'
   const filteredEntries = Object.entries(RELATION_COLORS).filter(([key]) => {
-    const isPolaridad = polaridadKeys.includes(key.toLowerCase());
-    
+    const isPolaridad = polaridadKeys.includes(key.toLowerCase());    
     if (filter === "polaridad") return isPolaridad;
     if (filter === "otros") return !isPolaridad;
     return true; // "todos"
