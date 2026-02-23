@@ -1,25 +1,22 @@
 # ============================================================================
 # Fractalis Frontend - Production Image
-# Next.js + React + pnpm | Node 22 Alpine
+# Next.js + React + npm | Node 22 Alpine
 # ============================================================================
 
 FROM node:22-alpine AS base
 
-# Instalar pnpm
-RUN corepack enable && corepack prepare pnpm@10.14.0 --activate
+RUN apk add --no-cache libc6-compat
 
 # ============================================================================
 # Stage 1: Instalar dependencias
 # ============================================================================
 FROM base AS deps
 
-RUN apk add --no-cache libc6-compat
-
 WORKDIR /app
 
-COPY package.json pnpm-lock.yaml ./
+COPY package.json package-lock.json ./
 
-RUN pnpm install --frozen-lockfile
+RUN npm ci
 
 # ============================================================================
 # Stage 2: Build
@@ -41,7 +38,7 @@ ARG NEXT_PUBLIC_GRAPHQL_URL
 ENV NEXT_PUBLIC_API_URL=$NEXT_PUBLIC_API_URL
 ENV NEXT_PUBLIC_GRAPHQL_URL=$NEXT_PUBLIC_GRAPHQL_URL
 
-RUN pnpm run build
+RUN npm run build
 
 # ============================================================================
 # Stage 3: Runner (imagen final mínima)
