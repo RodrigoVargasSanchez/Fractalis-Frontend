@@ -7,6 +7,29 @@ export function useEditLogic(id: string, masterData: any, refreshGraph: () => Pr
   const [tempEdges, setTempEdges] = useState<any[]>([]);
   const [deletedEdgeIds, setDeletedEdgeIds] = useState<string[]>([]);
   const [isSaving, setIsSaving] = useState(false);
+  const [loading, setLoading] = useState(true); // Nuevo estado de carga
+  const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    const loadData = async () => {
+      try {
+        setLoading(true);
+        // Lógica de fetching actual...
+        const data = await grafoService.getGrafoData(id);
+        
+        // Simular o procesar datos...
+        // setNodes(...);
+        // setEdges(...);
+      } catch (err) {
+        setError("Error al cargar los datos del grafo");
+      } finally {
+        setLoading(false); // Finaliza la carga
+      }
+    };
+
+    if (id) loadData();
+  }, [id]);
+
 
   useEffect(() => {
     const sorted = [...masterData.nodes].sort((a, b) => Number(a.id) - Number(b.id));

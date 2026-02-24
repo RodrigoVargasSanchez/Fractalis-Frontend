@@ -20,6 +20,7 @@ import { StatsPanelView } from "@/components/graph/StatsPanelView";
 
 // Otros componentes
 import { CircleNode } from "@/components/graph/CircleNode";
+import { GraphSkeleton } from "@/components/graph/GraphSkeleton";
 import { Participants } from "@/components/graph/Participants";
 import { GraphControls } from "@/components/graph/GraphControls";
 import { IntervencionesTable } from "@/components/graph/IntervencionesTable";
