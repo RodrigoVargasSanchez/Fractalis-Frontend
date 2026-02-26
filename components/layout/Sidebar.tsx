@@ -4,11 +4,12 @@ import { useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { cn } from "@/lib/utils";
-import { ChevronLeft, ChevronRight, LayoutGrid, PlusCircle } from "lucide-react";
+import { ChevronLeft, ChevronRight, LayoutGrid, PlusCircle, FileText } from "lucide-react";
 
 const MENU_ITEMS = [
   { name: "Mis Espacios", href: "/espacios", icon: LayoutGrid },
   { name: "Crear Nuevo", href: "/nuevo", icon: PlusCircle },
+  { name: "Plantilla e Instrucciones", href: "/instrucciones", icon: FileText },
 ];
 
 export default function Sidebar() {
