@@ -7,44 +7,61 @@ import { Download, FileText, Info, AlertCircle, CheckCircle2 } from "lucide-reac
 export default function InstruccionesPage() {
   
 const descargarTemplate = () => {
-    // 1. Creamos el libro
-    const workbook = XLSX.utils.book_new();
-    
-    // 2. Definimos los datos. 
-    // IMPORTANTE: El formato del Timestamp debe ser exacto.
-    const data = [
-      {
-        Ronda: "1",
-        Participante: "RS",
-        Contenido: "Ejemplo de intervención: Escriba aquí el texto de la conversación.",
-        Timestamp: "05-01-2025  19:00:00" // DOBLE ESPACIO AQUÍ
-      }
-    ];
+  const workbook = XLSX.utils.book_new();
 
-    // 3. Convertimos a hoja, pero con la opción 'raw: true' para que no auto-formatee fechas
-    const worksheet = XLSX.utils.json_to_sheet(data, { cellDates: false });
-
-    // 4. FORZAR FORMATO DE TEXTO para que Excel no rompa la fecha
-    // Aplicamos formato de texto "@" a la columna D (Timestamp)
-    if (worksheet["D2"]) {
-      worksheet["D2"].t = 's'; // Tipo string
-      worksheet["D2"].z = '@'; // Formato de celda: Texto
+  // 1. Definimos los datos de ejemplo (2 filas con distintos participantes)
+  // Los números representan la fecha y hora en formato serial de Excel
+  const data = [
+    {
+      Ronda: "1",
+      Participante: "RS",
+      Contenido: "Ejemplo de intervención: Escriba aquí el texto de la conversación.",
+      Timestamp: 45662.7916666667 // 05-01-2025 19:00:00
+    },
+    {
+      Ronda: "1",
+      Participante: "JP",
+      Contenido: "Respuesta de ejemplo: El segundo participante aporta información adicional.",
+      Timestamp: 45662.7951388889 // 05-01-2025 19:05:00 (5 minutos después)
     }
+  ];
 
-    // 5. Ajuste de anchos
-    const columnWidths = [
-      { wch: 10 },  // Ronda
-      { wch: 15 },  // Participante
-      { wch: 80 },  // Contenido
-      { wch: 30 },  // Timestamp (más ancho para ver los espacios)
-    ];
-    worksheet["!cols"] = columnWidths;
+  // 2. Convertimos a hoja de cálculo
+  const worksheet = XLSX.utils.json_to_sheet(data);
 
-    XLSX.utils.book_append_sheet(workbook, worksheet, "Plantilla");
+  // 3. PRE-CONFIGURAR TODA LA COLUMNA D (Timestamp)
+  // Aplicamos el formato a las filas de ejemplo y a las vacías hasta la 500
+  const formatoTimestamp = 'dd-mm-yyyy"  "hh:mm:ss';
+  
+  for (let i = 2; i <= 500; i++) {
+    const cellAddress = `D${i}`;
     
-    // 6. Escribir archivo
-    XLSX.writeFile(workbook, "Plantilla_FractalIS.xlsx");
-  };
+    if (!worksheet[cellAddress]) {
+      // Si la celda está vacía, creamos el objeto para que guarde el formato
+      worksheet[cellAddress] = { t: 'n', v: undefined, z: formatoTimestamp };
+    } else {
+      // Si ya tiene datos (D2 y D3), forzamos el tipo número y el formato
+      worksheet[cellAddress].t = 'n';
+      worksheet[cellAddress].z = formatoTimestamp;
+    }
+  }
+
+  // 4. Forzamos el rango de la hoja para que Excel "vea" las celdas pre-formateadas
+  worksheet["!ref"] = `A1:D500`;
+
+  // 5. Ajuste de anchos de columna para que el contenido sea legible
+  const columnWidths = [
+    { wch: 10 }, // Ronda
+    { wch: 15 }, // Participante
+    { wch: 80 }, // Contenido (más ancho para los textos largos)
+    { wch: 30 }, // Timestamp
+  ];
+  worksheet["!cols"] = columnWidths;
+
+  // 6. Añadir la hoja al libro y descargar
+  XLSX.utils.book_append_sheet(workbook, worksheet, "Plantilla");
+  XLSX.writeFile(workbook, "Plantilla_FractalIS.xlsx");
+};
 
   return (
     <div className="max-w-5xl mx-auto p-8 space-y-10 animate-in fade-in duration-500">

@@ -27,11 +27,26 @@ export default function Form({ personasDisponibles }: FormProps) {
     persona.id.toLowerCase().includes(busqueda.toLowerCase())
   );
 
-  const toggleParticipante = (id: string) => {
+const toggleParticipante = (id: string) => {
     setError(null);
-    setSeleccionados((prev) =>
-      prev.includes(id) ? prev.filter((p) => p !== id) : [...prev, id]
-    );
+    
+    setSeleccionados((prev) => {
+      const estaSeleccionado = prev.includes(id);
+
+      // Si ya está seleccionado, lo quitamos (siempre permitido)
+      if (estaSeleccionado) {
+        return prev.filter((p) => p !== id);
+      }
+
+      // Si NO está seleccionado, revisamos si ya llegamos al límite de 6
+      if (prev.length >= 6) {
+        setError("Solo puedes seleccionar un máximo de 6 participantes.");
+        return prev; // Retornamos el estado anterior sin cambios
+      }
+
+      // Si hay espacio, lo agregamos
+      return [...prev, id];
+    });
   };
 
   const handleSubmit = (event: React.FormEvent) => {
@@ -108,7 +123,7 @@ export default function Form({ personasDisponibles }: FormProps) {
             <h2 className="text-sm font-semibold uppercase tracking-wider text-gray-400">Participantes</h2>
           </div>
           <span className="text-xs font-mono text-[#2596be] bg-[#2596be]/10 px-2 py-1 rounded-full">
-            {seleccionados.length} seleccionados
+            {seleccionados.length} / 6 seleccionados
           </span>
         </div>
         
@@ -131,13 +146,17 @@ export default function Form({ personasDisponibles }: FormProps) {
               <div className="divide-y divide-white/5">
                 {personasFiltradas.map((persona) => {
                   const estaSeleccionado = seleccionados.includes(persona.id);
+                  const alcanzadoMaximo = seleccionados.length >= 6;
+                  const deshabilitado = alcanzadoMaximo && !estaSeleccionado;
+
                   return (
                     <div
                       key={persona.id}
-                      onClick={() => toggleParticipante(persona.id)}
+                      onClick={() => !deshabilitado && toggleParticipante(persona.id)}
                       className={cn(
                         "flex justify-between items-center p-4 cursor-pointer transition-colors group",
-                        estaSeleccionado ? "bg-[#2596be]/10" : "hover:bg-white/5"
+                        estaSeleccionado ? "bg-[#2596be]/10" : "hover:bg-white/5",
+                        deshabilitado && "opacity-30 cursor-not-allowed grayscale" // Estilo para indicar bloqueo
                       )}
                     >
                       <div className="flex items-center gap-3">
