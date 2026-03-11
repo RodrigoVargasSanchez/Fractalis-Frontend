@@ -1,14 +1,22 @@
 // lib/graphql.ts
 
-// Usamos la variable de entorno, y si no existe, el fallback a localhost
-const GRAPHQL_URL = process.env.NEXT_PUBLIC_GRAPHQL_URL || 'http://localhost:5000/graphql';
+const GRAPHQL_URL = process.env.NEXT_PUBLIC_GRAPHQL_URL || 'http://localhost:5002/graphql';
 
+/**
+ * Helper para realizar peticiones a la API GraphQL.
+ * Incluye automáticamente el token JWT de Fractalis si está disponible.
+ */
 export async function fetchGraphQL(query: string, variables = {}) {
   try {
+    // Obtener el token de localStorage solo si estamos en el cliente (navegador)
+    const token = typeof window !== 'undefined' ? localStorage.getItem('fractalis_token') : null;
+
     const response = await fetch(GRAPHQL_URL, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
+        // Inyectar el encabezado de autorización si el token existe
+        ...(token ? { 'Authorization': `Bearer ${token}` } : {}),
       },
       body: JSON.stringify({
         query,

@@ -57,6 +57,12 @@ function SubirArchivoContent() {
 
         if (rawData.length === 0) throw new Error("El archivo está vacío.");
 
+        if (rawData.length < 2) {
+          throw new Error(
+            "Se requieren al menos 2 registros de conversación para realizar un análisis colaborativo (interacción entre colaboradores)."
+          );
+        }
+
         const idsValidos = participantes.map(p => p.idArchivo);
         const uniqueRows = new Set();
         let lastTime = 0;

@@ -14,13 +14,13 @@ const descargarTemplate = () => {
   const data = [
     {
       Ronda: "1",
-      Participante: "RS",
+      Participante: "CS",
       Contenido: "Ejemplo de intervención: Escriba aquí el texto de la conversación.",
       Timestamp: 45662.7916666667 // 05-01-2025 19:00:00
     },
     {
       Ronda: "1",
-      Participante: "JP",
+      Participante: "CS2",
       Contenido: "Respuesta de ejemplo: El segundo participante aporta información adicional.",
       Timestamp: 45662.7951388889 // 05-01-2025 19:05:00 (5 minutos después)
     }
