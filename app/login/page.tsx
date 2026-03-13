@@ -33,34 +33,37 @@ export default function LoginPage() {
         <form onSubmit={handleSubmit} className="space-y-6">
           <div>
             <label className="block text-sm font-medium mb-2">Usuario</label>
-            <input
-              type="text"
-              className="w-full p-3 bg-[#1a1a1a] border border-white/20 rounded-lg focus:outline-none focus:border-blue-500 transition-colors"
-              value={usuario}
-              onChange={(e) => setUsuario(e.target.value)}
-              required
-            />
+              <input
+                type="text"
+                className="w-full p-3 bg-[#1a1a1a] border border-white/20 rounded-lg focus:outline-none focus:border-blue-500 transition-colors"
+                value={usuario}
+                onChange={(e) => setUsuario(e.target.value)}
+                required
+                suppressHydrationWarning // Añade esto para ignorar atributos de extensiones
+              />
           </div>
           
           <div>
             <label className="block text-sm font-medium mb-2">Contraseña</label>
-            <input
-              type="password"
-              className="w-full p-3 bg-[#1a1a1a] border border-white/20 rounded-lg focus:outline-none focus:border-blue-500 transition-colors"
-              value={clave}
-              onChange={(e) => setClave(e.target.value)}
-              required
-            />
+              <input
+                type="password"
+                className="w-full p-3 bg-[#1a1a1a] border border-white/20 rounded-lg focus:outline-none focus:border-blue-500 transition-colors"
+                value={clave}
+                onChange={(e) => setClave(e.target.value)}
+                required
+                suppressHydrationWarning // Añade esto también
+              />
           </div>
 
           {error && <p className="text-red-400 text-sm text-center">{error}</p>}
 
-          <button
-            type="submit"
-            className="w-full py-3 bg-white text-black font-bold rounded-lg hover:bg-gray-200 transition-transform active:scale-95"
-          >
-            Entrar
-          </button>
+            <button
+              type="submit"
+              className="w-full py-3 bg-white text-black font-bold rounded-lg hover:bg-gray-200 transition-transform active:scale-95"
+              suppressHydrationWarning //
+            >
+              Entrar
+            </button>
         </form>
       </div>
     </div>
