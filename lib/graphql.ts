@@ -1,4 +1,5 @@
 // lib/graphql.ts
+import { authService } from "@/services/authService";
 
 const GRAPHQL_URL = process.env.NEXT_PUBLIC_GRAPHQL_URL || 'http://localhost:5002/graphql';
 
@@ -8,14 +9,13 @@ const GRAPHQL_URL = process.env.NEXT_PUBLIC_GRAPHQL_URL || 'http://localhost:500
  */
 export async function fetchGraphQL(query: string, variables = {}) {
   try {
-    // Obtener el token de localStorage solo si estamos en el cliente (navegador)
-    const token = typeof window !== 'undefined' ? localStorage.getItem('fractalis_token') : null;
+    // Usamos el método centralizado del servicio de autenticación
+    const token = authService.getToken(); 
 
     const response = await fetch(GRAPHQL_URL, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        // Inyectar el encabezado de autorización si el token existe
         ...(token ? { 'Authorization': `Bearer ${token}` } : {}),
       },
       body: JSON.stringify({

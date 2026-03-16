@@ -1,5 +1,6 @@
 import { fetchGraphQL } from "@/lib/graphql";
 import { Relacion } from "@/app/nuevo/subir-archivo/constants";
+import { authService } from "./authService";
 
 /**
  * --- Interfaces de Datos ---
@@ -90,7 +91,6 @@ const API_AI_URL = `${BASE_URL}/api/ai/chat`;
 
 /**
  * Helper interno para formatear strings de fecha ISO a un formato legible por el usuario.
- * Ejemplo: "29/01/2026 — 18:00"
  */
 const formatFechaDisplay = (fechaISO: string) => {
   const fechaObj = new Date(fechaISO);
@@ -111,7 +111,6 @@ export const espaciosService = {
   
   /**
    * 1. Obtiene todos los registros para la tabla principal.
-   * Transforma la respuesta de GraphQL al formato de la interfaz Espacio.
    */
   getAll: async (): Promise<Espacio[]> => {
     const data = await fetchGraphQL(GET_ESPACIOS_QUERY);
@@ -142,7 +141,6 @@ export const espaciosService = {
 
   /**
    * 3. Obtiene el detalle completo para la página de visualización.
-   * Mapea la relación anidada de usuarios para obtener una lista plana de nombres.
    */
   getDetalle: async (id: number): Promise<EspacioDetalle | null> => {
     const data = await fetchGraphQL(GET_ESPACIO_DETALLE_QUERY, { id });
@@ -166,13 +164,19 @@ export const espaciosService = {
    * 4. Elimina un espacio mediante una petición DELETE REST.
    */
   delete: async (id: number): Promise<void> => {
-    const response = await fetch(`${API_DELETE_URL}/${id}`, { method: 'DELETE' });
-    if (!response.ok) throw new Error("Error al eliminar");
+    // Recuperamos el token actualizado antes de la petición
+    const currentToken = authService.getToken();
+    const response = await fetch(`${API_DELETE_URL}/${id}`, { 
+      method: 'DELETE',
+      headers: {
+        'Authorization': `Bearer ${currentToken}`
+      }
+    });
+    if (!response.ok) throw new Error("Error al eliminar el espacio");
   },
 
   /**
    * 5. Crea un nuevo espacio enviando los datos al motor de IA.
-   * Modela el payload para sincronizar los IDs del archivo Excel con los IDs de la base de datos.
    */
   createWithAI: async (payload: {
     titulo: string;
@@ -181,7 +185,10 @@ export const espaciosService = {
     excelData: any[];
     relaciones: Relacion[];
   }): Promise<void> => {
-    // Estructuración del cuerpo del mensaje para el endpoint de IA
+    
+    // Recuperamos el token actualizado para autorizar el procesamiento con IA
+    const currentToken = authService.getToken();
+
     const body = {
       proyecto: payload.titulo,
       descripcion: payload.descripcion,
@@ -205,7 +212,10 @@ export const espaciosService = {
 
     const response = await fetch(API_AI_URL, {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers: { 
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${currentToken}`
+       },
       body: JSON.stringify(body)
     });
 

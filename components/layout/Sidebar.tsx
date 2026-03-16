@@ -76,26 +76,6 @@ export default function Sidebar() {
           </ul>
         </nav>
       </div>
-
-      {/* PERFIL DE USUARIO */}
-      <footer className="border-t border-white/20 p-4 bg-[#1e7a9c]/30">
-        <div className={cn(
-          "flex items-center gap-3",
-          isCollapsed && "justify-center"
-        )}>
-          <img
-            src="https://images.unsplash.com/photo-1600486913747-55e5470d6f40"
-            alt="Profile avatar"
-            className="size-10 shrink-0 rounded-full object-cover border border-white/30 shadow-sm"
-          />
-          {!isCollapsed && (
-            <div className="text-xs truncate transition-opacity duration-300">
-              <p className="font-semibold truncate">Nombre de usuario</p>
-              <p className="text-white/70 truncate">correo@ejemplo.com</p>
-            </div>
-          )}
-        </div>
-      </footer>
     </div>
   );
 }

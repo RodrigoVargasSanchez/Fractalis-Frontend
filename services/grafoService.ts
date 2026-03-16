@@ -1,6 +1,13 @@
 import { PERSON_COLORS } from "../app/espacios/grafo/[id]/constants";
+import { authService } from "./authService";
 
 const BASE_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000";
+
+// Helper para obtener headers con token
+const getAuthHeaders = () => ({
+  "Content-Type": "application/json",
+  "Authorization": `Bearer ${authService.getToken()}`
+});
 
 /**
  * Servicio encargado de la recuperación, transformación y actualización de datos del grafo.
@@ -13,7 +20,7 @@ export const grafoService = {
     const url = `${BASE_URL}/api/concepts/bulk-update`;
     const response = await fetch(url, {
       method: "PATCH",
-      headers: { "Content-Type": "application/json" },
+      headers: getAuthHeaders(),
       body: JSON.stringify({ pid: parseInt(pid), updates }),
     });
 
@@ -31,7 +38,7 @@ export const grafoService = {
     const url = `${BASE_URL}/api/concepts`;
     const response = await fetch(url, {
       method: "POST",
-      headers: { "Content-Type": "application/json" },
+      headers: getAuthHeaders(),
       body: JSON.stringify({ 
         pid: typeof pid === "string" ? parseInt(pid) : pid, 
         name: name.trim(),
@@ -49,7 +56,9 @@ export const grafoService = {
  * Obtiene métricas de red (grado, comunidad, centralidad) calculadas en el servidor.
  */
 getAdvancedStats: async (pid: string | number) => {
-  const response = await fetch(`${BASE_URL}/api/graph/${pid}/stats`);
+  const response = await fetch(`${BASE_URL}/api/graph/${pid}/stats`, {
+      headers: getAuthHeaders(), // <--- FALTA ESTO
+    });
   if (!response.ok) throw new Error("Error al obtener estadísticas avanzadas");
   return response.json();
 },
@@ -68,7 +77,7 @@ createEdge: async (
 
   const response = await fetch(url, {
     method: "POST",
-    headers: { "Content-Type": "application/json" },
+    headers: getAuthHeaders(),
     body: JSON.stringify({
       pid: typeof pid === "string" ? parseInt(pid) : pid,
       sourceId,
@@ -108,7 +117,7 @@ createEdge: async (
     const url = `${BASE_URL}/api/edges/bulk-update`;
     const response = await fetch(url, {
       method: 'PATCH',
-      headers: { 'Content-Type': 'application/json' },
+      headers: getAuthHeaders(),
       body: JSON.stringify({ pid: parseInt(pid), updates, deletions })
     });
 
@@ -121,7 +130,10 @@ createEdge: async (
 
   deleteConcept: async (conceptId: string | number) => {
     const url = `${BASE_URL}/api/concepts/${conceptId}`;
-    const response = await fetch(url, { method: "DELETE" });
+    const response = await fetch(url, { 
+      method: "DELETE",
+      headers: getAuthHeaders(),
+     });
     if (!response.ok) throw new Error("Fallo al eliminar el concepto");
     return response.json();
   },
@@ -130,7 +142,9 @@ createEdge: async (
    * Recupera el grafo completo y lo procesa para su uso en React Flow.
    */
   getGraphData: async (graphId: string) => {
-    const response = await fetch(`${BASE_URL}/api/graph/${graphId}`);
+    const response = await fetch(`${BASE_URL}/api/graph/${graphId}`, {
+      headers: getAuthHeaders()
+    });
     if (!response.ok) throw new Error("Error al obtener el grafo");
     const data = await response.json();
     console.log("🔥 ARISTAS CRUDAS DESDE EL BACKEND:", data.edges);
