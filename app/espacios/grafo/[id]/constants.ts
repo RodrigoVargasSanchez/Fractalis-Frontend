@@ -12,6 +12,18 @@ export const PERSON_COLORS = [
   "#e67e22"  // Naranja
 ];
 
+export const COMMUNITY_COLORS = [
+  "#2563eb", // Azul royal
+  "#a855f7", // Morado eléctrico
+  "#f97316", // Naranja brillante
+  "#22c55e", // Verde esmeralda
+  "#ef4444", // Rojo intenso
+  "#eab308", // Amarillo vibrante
+  "#06b6d4", // Cian
+  "#ec4899", // Rosa neón
+  "#14b8a6", // Turquesa
+];
+
 /**
  * Colores para las relaciones semánticas del grafo.
  * Mapea el ID de la relación con un color hexadecimal.

@@ -17,6 +17,26 @@ export function middleware(request: NextRequest) {
     return NextResponse.redirect(new URL('/espacios', request.url));
   }
 
+  // Restringir rutas de admin, de creación y de edición de espacios a usuarios no-admin
+  const isRestrictedRoute =
+    request.nextUrl.pathname.startsWith('/admin') ||
+    request.nextUrl.pathname.startsWith('/nuevo') ||
+    request.nextUrl.pathname.includes('/espacios/editar');
+
+  if (token && isRestrictedRoute) {
+    try {
+      const payload = token.split('.')[1];
+      const base64 = payload.replace(/-/g, '+').replace(/_/g, '/');
+      const decoded = JSON.parse(atob(base64));
+
+      if (decoded.rol !== 'admin') {
+        return NextResponse.redirect(new URL('/espacios', request.url));
+      }
+    } catch (e) {
+      return NextResponse.redirect(new URL('/espacios', request.url));
+    }
+  }
+
   return NextResponse.next();
 }
 

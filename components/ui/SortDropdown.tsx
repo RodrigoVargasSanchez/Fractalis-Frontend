@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import { cn } from '@/lib/utils';
+import { ChevronDown } from 'lucide-react';
 
 // --- Constantes (UPPER_CASE) ---
 const SORT_OPTIONS = [
@@ -40,21 +41,18 @@ export default function SortDropdown({ onSort }: SortDropdownProps) {
           onClick={() => setIsMenuOpen(!isMenuOpen)}
           type="button"
           className={cn(
-            "w-48 h-9 flex items-center justify-between rounded border border-gray-300 transition-colors",
-            "bg-white text-black hover:bg-gray-100 focus:outline-none px-4"
+            "w-52 h-10 flex items-center justify-between rounded-xl border border-white/15 transition-all duration-300",
+            "bg-[#1a1a1a]/85 text-white hover:border-blue-500/50 hover:shadow-[0_0_15px_rgba(59,130,246,0.15)] focus:outline-none px-4 cursor-pointer"
           )}
         >
           <span className="text-sm font-semibold truncate pr-2">
-            {selectedOption.label}&nbsp;
+            {selectedOption.label}
           </span>
           
-          <img 
-            src="/flecha-desplegar.png" 
-            alt="Icono desplegar"
-            style={{ width: '12px', height: '12px' }}
+          <ChevronDown 
             className={cn(
-              "transition-transform duration-200 flex-shrink-0 ",
-              isMenuOpen && "rotate-180"
+              "w-4 h-4 text-white/40 transition-transform duration-300",
+              isMenuOpen && "rotate-180 text-blue-400"
             )}
           />
         </button>
@@ -63,16 +61,11 @@ export default function SortDropdown({ onSort }: SortDropdownProps) {
         {isMenuOpen && (
           <div 
             className={cn(
-              "absolute left-0 w-48 rounded border border-gray-700 bg-[#1a1a1a] shadow-2xl overflow-hidden",
-              "z-[9999] top-full mt-1" 
+              "absolute left-0 w-52 rounded-xl border border-white/10 bg-[#2a2a2a]/95 backdrop-blur-xl shadow-[0_20px_50px_rgba(0,0,0,0.5)] overflow-hidden",
+              "z-[9999] top-full mt-1.5 p-1 animate-in fade-in slide-in-from-top-2 duration-200" 
             )}
-            style={{ 
-              position: 'absolute',
-              minHeight: 'auto' 
-            }}
           >
             {SORT_OPTIONS.map((sortOption) => {
-              // Variable booleana en camelCase
               const isSelected = selectedOption.value === sortOption.value;
               
               return (
@@ -80,11 +73,11 @@ export default function SortDropdown({ onSort }: SortDropdownProps) {
                   key={sortOption.value}
                   onClick={() => handleOptionSelect(sortOption)}
                   className={cn(
-                    "block w-full text-left px-4 py-2.5 text-sm transition-colors",
-                    "hover:bg-white/10",
+                    "block w-full text-left px-4 py-2.5 rounded-lg text-sm transition-all duration-200 cursor-pointer",
+                    "hover:bg-white/5 hover:text-white",
                     isSelected 
-                      ? "text-blue-400 font-bold bg-white/5" 
-                      : "text-white"
+                      ? "text-blue-400 font-semibold bg-blue-500/10" 
+                      : "text-white/70"
                   )}
                 >
                   {sortOption.label}

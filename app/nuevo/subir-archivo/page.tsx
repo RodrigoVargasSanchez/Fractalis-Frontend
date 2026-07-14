@@ -5,7 +5,7 @@ import { useSearchParams, useRouter } from "next/navigation";
 import Link from "next/link";
 import * as XLSX from "xlsx";
 
-import FileUpload from "@/components/ui/FileUpload"; 
+import FileUpload from "@/components/ui/FileUpload";
 import TableParticipants from "@/components/forms/TableParticipants";
 // Importación eliminada: TableRelationships ya no es necesario
 import ErrorModal from "@/components/ui/ErrorModal";
@@ -26,13 +26,13 @@ export default function SubirArchivoPage() {
 function SubirArchivoContent() {
   const searchParams = useSearchParams();
   const router = useRouter();
-  
+
   const idsParam = searchParams.get("ids") || "";
   const titulo = searchParams.get("titulo") || "Nuevo Espacio";
   const descripcion = searchParams.get("descripcion") || "";
 
   const { participantes, loading: loadingParticipants } = useParticipants(idsParam);
-  
+
   const [excelData, setExcelData] = useState<any[]>([]);
   const [fileUploadKey, setFileUploadKey] = useState(0);
   const [isProcessing, setIsProcessing] = useState(false);
@@ -70,11 +70,11 @@ function SubirArchivoContent() {
         const validatedData = rawData.map((row, index) => {
           const rowFormatted = { ...row, Timestamp: formatExcelDate(row.Timestamp) };
           const { currentTime, hash } = validateExcelRow(rowFormatted, index + 2, idsValidos, lastTime);
-          
+
           if (uniqueRows.has(hash)) throw new Error(`Fila ${index + 2}: Registro duplicado detectado.`);
           uniqueRows.add(hash);
           lastTime = currentTime;
-          
+
           return rowFormatted;
         });
         setExcelData(validatedData);
@@ -107,86 +107,98 @@ function SubirArchivoContent() {
       router.refresh();
     } catch (err: any) {
       window.alert(err.message || "No se pudo conectar con el servidor.");
-      // No hacemos back() aquí para permitir al usuario intentar de nuevo si fue un error de red
     } finally {
       setIsProcessing(false);
     }
   };
 
   return (
-    <div className="max-w-4xl mx-auto p-6 space-y-8 animate-in fade-in duration-500">
-      
+    <div className="max-w-4xl mx-auto p-4 sm:p-8 space-y-8 relative">
+      <div className="absolute top-0 left-1/4 w-96 h-96 bg-blue-500/5 rounded-full blur-[120px] pointer-events-none z-0" />
+      <div className="absolute bottom-10 right-1/4 w-96 h-96 bg-white/5 rounded-full blur-[120px] pointer-events-none z-0" />
+
       {isProcessing && (
-        <div className="fixed inset-0 z-[100] bg-black/60 backdrop-blur-sm flex flex-col items-center justify-center cursor-wait">
-          <div className="bg-[#333333] p-8 rounded-2xl border border-gray-700 shadow-2xl flex flex-col items-center gap-4">
-            <div className="w-12 h-12 border-4 border-[#2596be] border-t-transparent rounded-full animate-spin" />
-            <p className="text-white text-xl font-bold animate-pulse">Procesando con IA...</p>
-            <p className="text-gray-400 text-sm">Por favor, no cierres esta ventana.</p>
+        <div className="fixed inset-0 z-[100] bg-black/80 backdrop-blur-md flex flex-col items-center justify-center cursor-wait">
+          <div className="bg-[#2a2a2a]/80 backdrop-blur-xl p-10 rounded-3xl border border-white/10 shadow-[0_0_50px_rgba(59,130,246,0.3)] flex flex-col items-center gap-6 max-w-sm text-center">
+            <div className="relative w-16 h-16">
+              <div className="absolute inset-0 border-4 border-blue-500/15 rounded-full" />
+              <div className="absolute inset-0 border-4 border-t-blue-500 rounded-full animate-spin" />
+              <div className="absolute w-3.5 h-3.5 bg-blue-500 rounded-full top-0 left-1/2 -translate-x-1/2 -translate-y-1/2 shadow-[0_0_15px_rgba(59,130,246,0.8)] animate-pulse" />
+            </div>
+            <div className="space-y-2">
+              <p className="text-white text-xl font-extrabold tracking-wider uppercase bg-gradient-to-r from-white to-blue-400 bg-clip-text text-transparent">Procesando con IA</p>
+              <p className="text-blue-400 font-mono text-xs uppercase tracking-widest">// Calculando inferencia de grafos</p>
+            </div>
+            <p className="text-white/40 text-xs font-mono">Por favor, no cierres esta ventana. Configurando relaciones y mapeando nodos semánticos...</p>
           </div>
         </div>
       )}
 
-      <ErrorModal 
-        isOpen={modal.isOpen} 
-        title={modal.title} 
-        message={modal.message} 
-        onClose={() => setModal(prev => ({ ...prev, isOpen: false }))} 
+      <ErrorModal
+        isOpen={modal.isOpen}
+        title={modal.title}
+        message={modal.message}
+        onClose={() => setModal(prev => ({ ...prev, isOpen: false }))}
       />
 
-      <header className="space-y-4 border-b border-gray-800 pb-8 text-center">
-        <h1 className="text-5xl md:text-6xl font-black text-white tracking-tighter leading-tight">
-          {titulo}
-        </h1>
+      <header className="mb-10 text-center space-y-6 relative z-10">
+        <img
+          src="/logofractalis.png"
+          alt="Fractal-IS Diálogo Logo"
+          className="mx-auto h-auto w-40 md:w-56 object-contain drop-shadow-[0_0_15px_rgba(255,255,255,0.15)] transition-transform hover:scale-105 duration-300"
+        />
+        <div className="space-y-1">
+          <h1 className="text-2xl font-light uppercase tracking-widest text-white/95 truncate max-w-2xl mx-auto">{titulo}</h1>
+          <p className="text-[10px] font-mono text-white/40 uppercase tracking-wider mt-0.5">// Ingesta de Datos y Mapeo de Red</p>
+        </div>
       </header>
 
-      <main className="grid gap-8">
-        <section className="bg-[#333333] rounded-2xl border border-gray-700 overflow-hidden shadow-2xl">
-          <div className="px-6 py-4 border-b border-gray-700 bg-white/5 flex justify-between items-center">
-            <h2 className="font-semibold text-white">Participantes en este espacio</h2>
+      <main className="grid gap-8 relative z-10">
+        <section className="bg-[#2a2a2a]/60 backdrop-blur-xl rounded-2xl border border-white/10 overflow-hidden shadow-[0_20px_50px_rgba(0,0,0,0.5)]">
+          <div className="px-6 py-4 border-b border-white/10 bg-white/5 flex justify-between items-center">
+            <h2 className="text-xs font-semibold uppercase tracking-widest text-white/80">Participantes en este espacio</h2>
+            <span className="text-[10px] font-mono text-blue-400 bg-blue-500/10 border border-blue-500/20 px-2.5 py-0.5 rounded uppercase tracking-wider">
+              Fase de Ingesta
+            </span>
           </div>
           <TableParticipants participantes={participantes} loading={loadingParticipants} />
         </section>
 
-        {/* SECCIÓN ELIMINADA: TableRelationships. 
-            Ahora el sistema asume todas las relaciones de RELATIONS_CONFIG.
-        */}
-
-        <section className="bg-[#333333] p-8 rounded-2xl border border-gray-700 shadow-2xl space-y-6">
+        <section className="bg-[#2a2a2a]/60 backdrop-blur-xl p-8 rounded-2xl border border-white/10 shadow-[0_20px_50px_rgba(0,0,0,0.5)] space-y-6">
           <div className="space-y-1">
-            <h2 className="text-xl font-bold text-white">Documentación del Proyecto</h2>
-            <p className="text-sm text-gray-400">Sube el registro de la conversación para su análisis.</p>
+            <h2 className="text-sm font-semibold uppercase tracking-widest text-white/90">Documentación del Proyecto</h2>
+            <p className="text-xs text-white/40 font-mono uppercase mt-0.5">// Sube el registro de conversación en formato estructurado</p>
           </div>
 
-          <FileUpload 
-            key={fileUploadKey} 
-            onFilesSelected={handleFileUpload} 
-            label="Selecciona el archivo Excel (.xlsx)" 
+          <FileUpload
+            key={fileUploadKey}
+            onFilesSelected={handleFileUpload}
+            label="Selecciona el archivo Excel (.xlsx)"
             accept=".xlsx, .xls"
           />
 
           {excelData.length > 0 && !isProcessing && (
-            <div className="flex items-center gap-3 p-4 bg-green-500/10 border border-green-500/20 rounded-xl text-green-400 text-sm animate-in slide-in-from-top-2">
+            <div className="flex items-center gap-3 p-4 bg-green-500/10 border border-green-500/20 rounded-xl text-green-400 text-xs font-mono animate-in slide-in-from-top-2">
               <span>✅</span>
-              <span>Archivo validado: <strong>{excelData.length} registros</strong> listos para IA.</span>
+              <span>SISTEMA VALIDADO: <strong>{excelData.length} registros</strong> listos para inferencia IA.</span>
             </div>
           )}
         </section>
       </main>
 
-      <footer className="flex justify-between items-center pt-6">
-        <Link 
-          href="/nuevo" 
-          className={cn("text-gray-400 hover:text-white transition-all flex items-center gap-2", isProcessing && "pointer-events-none opacity-20")}
+      <footer className="flex justify-between items-center pt-6 relative z-10">
+        <Link
+          href="/nuevo"
+          className={cn("text-white/40 hover:text-white transition-all text-xs font-mono uppercase tracking-wider flex items-center gap-2", isProcessing && "pointer-events-none opacity-20")}
         >
           ← Volver atrás
         </Link>
-        
-        <button 
+
+        <button
           disabled={excelData.length === 0 || isProcessing}
           onClick={handleFinalizar}
           className={cn(
-            "bg-[#2596be] text-white px-10 py-4 rounded-xl font-bold shadow-lg transition-all active:scale-95 flex items-center gap-3",
-            "disabled:opacity-20 disabled:grayscale hover:bg-[#1e7a9c]",
+            "relative overflow-hidden px-8 py-3.5 bg-white text-black font-bold uppercase tracking-wider text-xs rounded-xl transition-all duration-300 hover:bg-white/90 hover:shadow-[0_0_25px_rgba(255,255,255,0.35)] active:scale-[0.98] cursor-pointer disabled:opacity-30 disabled:cursor-not-allowed flex items-center gap-3",
             isProcessing && "animate-pulse"
           )}
         >

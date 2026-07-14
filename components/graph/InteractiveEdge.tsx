@@ -16,12 +16,12 @@ export const InteractiveEdge = memo(({
   sourcePosition,
   targetPosition,
   style = {},
-  className, 
+  className,
   markerEnd,
   data,
 }: CustomEdgeProps) => {
   const [isOpen, setIsOpen] = useState(false);
-  
+
   const edgeColor = data?.color || style.stroke || '#b1b1b7';
   const isConsolidated = data?.isConsolidated;
   const totalIntervenciones = (data?.sinergias || 0) + (data?.antagonismos || 0);
@@ -88,37 +88,37 @@ export const InteractiveEdge = memo(({
           />
         )}
 
-        <BaseEdge 
-          path={edgePath} 
-          markerEnd={markerEnd} 
+        <BaseEdge
+          path={edgePath}
+          markerEnd={markerEnd}
           interactionWidth={20}
-          style={{ 
-            ...style, 
+          style={{
+            ...style,
             strokeWidth: isOpen ? (Number(style.strokeWidth || 3.5) + 2) : style.strokeWidth,
             stroke: edgeColor,
-          }} 
+          }}
         />
-        
+
         <path d={edgePath} fill="none" stroke="transparent" strokeWidth={20} />
       </g>
-      
+
       <EdgeLabelRenderer>
         <div
           style={{
             position: 'absolute',
             transform: `translate(-50%, -50%) translate(${labelX}px,${labelY}px)`,
-            pointerEvents: 'none', 
+            pointerEvents: 'none',
           }}
           className="nodrag nopan z-50"
         >
           {isOpen && (
-            <div 
-              style={{ pointerEvents: 'all' }} 
+            <div
+              style={{ pointerEvents: 'all' }}
               className="bg-[#1a1a1a] border border-white/10 p-4 rounded-xl shadow-2xl min-w-[240px]"
             >
               {/* CABECERA */}
               <div className="flex justify-between items-center mb-3">
-                <span 
+                <span
                   className="px-2 py-0.5 rounded-md text-[9px] font-black uppercase tracking-widest border"
                   style={{ color: edgeColor, borderColor: `${edgeColor}44`, backgroundColor: `${edgeColor}11` }}
                 >
@@ -126,7 +126,7 @@ export const InteractiveEdge = memo(({
                 </span>
                 <button onClick={(e) => { e.stopPropagation(); setIsOpen(false); }} className="text-white/30 hover:text-white transition-colors">
                   <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path d="M6 18L18 6M6 6l12 12" strokeWidth="3" strokeLinecap="round"/>
+                    <path d="M6 18L18 6M6 6l12 12" strokeWidth="3" strokeLinecap="round" />
                   </svg>
                 </button>
               </div>
@@ -142,13 +142,13 @@ export const InteractiveEdge = memo(({
                     data.authors.map((auth: any, idx: number) => {
                       const isSinergia = auth.type?.toLowerCase().includes('sinergia') || auth.type?.toLowerCase().includes('complementary');
                       const typeColor = isSinergia ? '#2ecc71' : '#e74c3c';
-                      
+
                       return (
                         <div key={idx} className="flex items-center gap-3 bg-white/5 p-2 rounded-lg border border-white/5">
-                          <div 
+                          <div
                             className="w-7 h-7 rounded-full flex-shrink-0 flex items-center justify-center text-[10px] font-bold"
-                            style={{ 
-                              backgroundColor: `${typeColor}22`, 
+                            style={{
+                              backgroundColor: `${typeColor}22`,
                               color: typeColor,
                               border: `1px solid ${typeColor}44`
                             }}
@@ -166,7 +166,7 @@ export const InteractiveEdge = memo(({
                     })
                   ) : (
                     <div className="flex items-center gap-3 bg-white/5 p-2 rounded-lg border border-white/5">
-                      <div 
+                      <div
                         className="w-9 h-9 rounded-full flex-shrink-0 flex items-center justify-center text-[12px] font-bold"
                         style={{ backgroundColor: `${edgeColor}22`, color: edgeColor, border: `1px solid ${edgeColor}44` }}
                       >

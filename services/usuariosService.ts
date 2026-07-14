@@ -20,6 +20,7 @@ const GET_ALL_USUARIOS_QUERY = `
       nodes {
         usuarioId
         usuarioNombre
+        rol
       }
     }
   }
@@ -38,10 +39,13 @@ export const usuariosService = {
     // Ejecuta la consulta a través del helper de GraphQL
     const data = await fetchGraphQL(GET_ALL_USUARIOS_QUERY);
     
-    // Mapea los nodos de la respuesta al formato de la interfaz Persona
-    return data.allUsuarios.nodes.map((usuario: any) => ({
-      id: usuario.usuarioId.toString(),
-      nombre: usuario.usuarioNombre
-    }));
+    // Mapea los nodos de la respuesta al formato de la interfaz Persona,
+    // filtrando administradores o usuarios con ID 'admin'
+    return data.allUsuarios.nodes
+      .filter((usuario: any) => usuario.rol !== 'admin' && usuario.usuarioId !== 'admin')
+      .map((usuario: any) => ({
+        id: usuario.usuarioId.toString(),
+        nombre: usuario.usuarioNombre
+      }));
   }
 };

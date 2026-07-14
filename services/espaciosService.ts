@@ -12,9 +12,10 @@ export interface Espacio {
   descripcion: string;
   fecha: string;
   participantes: number;
+  participantesIds?: string[];
 }
 
-export interface EspacioEdit extends Espacio {}
+export interface EspacioEdit extends Espacio { }
 
 export interface EspacioDetalle {
   id: number;
@@ -41,6 +42,9 @@ const GET_ESPACIOS_QUERY = `
         espacioFecha
         espacioParticipantesByEspacioId {
           totalCount
+          nodes {
+            usuarioId
+          }
         }
       }
     }
@@ -94,11 +98,11 @@ const API_AI_URL = `${BASE_URL}/api/ai/chat`;
  */
 const formatFechaDisplay = (fechaISO: string) => {
   const fechaObj = new Date(fechaISO);
-  const fechaTexto = fechaObj.toLocaleDateString('es-ES', { 
-    day: '2-digit', month: '2-digit', year: 'numeric' 
+  const fechaTexto = fechaObj.toLocaleDateString('es-ES', {
+    day: '2-digit', month: '2-digit', year: 'numeric'
   });
-  const horaTexto = fechaObj.toLocaleTimeString('es-ES', { 
-    hour: '2-digit', minute: '2-digit' 
+  const horaTexto = fechaObj.toLocaleTimeString('es-ES', {
+    hour: '2-digit', minute: '2-digit'
   });
   return `${fechaTexto} — ${horaTexto}`;
 };
@@ -108,7 +112,7 @@ const formatFechaDisplay = (fechaISO: string) => {
  * Centraliza todas las operaciones relacionadas con la entidad "Espacio".
  */
 export const espaciosService = {
-  
+
   /**
    * 1. Obtiene todos los registros para la tabla principal.
    */
@@ -120,6 +124,7 @@ export const espaciosService = {
       descripcion: e.espacioDescripcion || "Sin descripción",
       fecha: formatFechaDisplay(e.espacioFecha),
       participantes: e.espacioParticipantesByEspacioId.totalCount,
+      participantesIds: e.espacioParticipantesByEspacioId.nodes.map((n: any) => n.usuarioId),
     }));
   },
 
@@ -166,7 +171,7 @@ export const espaciosService = {
   delete: async (id: number): Promise<void> => {
     // Recuperamos el token actualizado antes de la petición
     const currentToken = authService.getToken();
-    const response = await fetch(`${API_DELETE_URL}/${id}`, { 
+    const response = await fetch(`${API_DELETE_URL}/${id}`, {
       method: 'DELETE',
       headers: {
         'Authorization': `Bearer ${currentToken}`
@@ -185,7 +190,7 @@ export const espaciosService = {
     excelData: any[];
     relaciones: Relacion[];
   }): Promise<void> => {
-    
+
     // Recuperamos el token actualizado para autorizar el procesamiento con IA
     const currentToken = authService.getToken();
 
@@ -212,10 +217,10 @@ export const espaciosService = {
 
     const response = await fetch(API_AI_URL, {
       method: 'POST',
-      headers: { 
+      headers: {
         'Content-Type': 'application/json',
         'Authorization': `Bearer ${currentToken}`
-       },
+      },
       body: JSON.stringify(body)
     });
 

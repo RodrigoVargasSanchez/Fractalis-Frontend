@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import Form from "@/components/forms/Form";
+import Stepper from "@/components/ui/Stepper";
 import { usuariosService, Persona } from "@/services/usuariosService";
 
 /**
@@ -34,37 +35,48 @@ export default function NuevoEspacioPage() {
   }, []);
 
   /**
-   * Vista de carga de pantalla completa.
-   * Utiliza un spinner animado con los colores corporativos mientras se sincronizan los datos.
+   * Vista de carga.
    */
   if (loading) {
     return (
-      <div className="flex flex-col items-center justify-center min-h-screen bg-[#121212]">
-        <div className="w-12 h-12 border-4 border-[#2596be] border-t-transparent rounded-full animate-spin mb-4" />
-        <p className="text-gray-400 font-medium animate-pulse">Cargando base de datos...</p>
+      <div className="flex flex-col items-center justify-center py-40 relative z-10">
+        <div className="relative w-16 h-16 mb-6">
+          <div className="absolute inset-0 border-4 border-blue-500/10 rounded-full" />
+          <div className="absolute inset-0 border-4 border-t-blue-500 rounded-full animate-spin" />
+        </div>
+        <p className="text-blue-400 font-mono text-sm uppercase tracking-widest animate-pulse">
+          // Inicializando Red de Usuarios...
+        </p>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-[#222222] py-12 px-4 sm:px-6">
-      <div className="max-w-3xl mx-auto">
+    <div className="max-w-4xl mx-auto p-4 sm:p-8 relative">
+      {/* Resplandores de fondo */}
+      <div className="absolute top-0 left-1/4 w-96 h-96 bg-blue-500/5 rounded-full blur-[120px] pointer-events-none z-0" />
+      <div className="absolute bottom-10 right-1/4 w-96 h-96 bg-white/5 rounded-full blur-[120px] pointer-events-none z-0" />
+
+      <div className="relative z-10">
         {/* Encabezado: Presentación visual con logo y títulos de sección */}
-        <header className="mb-12 text-center space-y-6">
+        <header className="mb-10 text-center space-y-6">
           <img 
             src="/logofractalis.png" 
             alt="Fractal-IS Diálogo Logo" 
-            className="mx-auto h-auto w-40 md:w-64 object-contain transition-transform hover:scale-105 duration-300"
+            className="mx-auto h-auto w-40 md:w-56 object-contain drop-shadow-[0_0_15px_rgba(255,255,255,0.15)] transition-transform hover:scale-105 duration-300"
           />
-          <div className="space-y-2">
-            <h1 className="text-2xl font-bold text-white tracking-tight">Crear Nuevo Espacio</h1>
-            <p className="text-gray-400 text-sm">Configura el entorno para tu análisis de debate</p>
+          <div className="space-y-1">
+            <h1 className="text-2xl font-light uppercase tracking-widest text-white/95">Crear Nuevo Espacio</h1>
+            <p className="text-[10px] font-mono text-white/40 uppercase tracking-wider mt-0.5">Configura el entorno para tu análisis de debate</p>
           </div>
         </header>
 
-        {/* Contenedor del Formulario con efectos visuales de gradiente y desenfoque */}
+        {/* Flujo de Pasos (Stepper) */}
+        <Stepper currentStep={1} />
+
+        {/* Contenedor del Formulario */}
         <div className="relative group">
-          <div className="absolute -inset-1 bg-gradient-to-r from-[#2596be]/20 to-blue-500/20 rounded-2xl blur opacity-25 group-hover:opacity-50 transition duration-1000"></div>
+          <div className="absolute -inset-1 bg-gradient-to-r from-blue-500/10 to-blue-500/5 rounded-2xl blur-lg opacity-75 transition duration-1000 group-hover:opacity-100"></div>
           <div className="relative">
             {/* Componente Form encargado de la lógica de envío y validación de datos */}
             <Form personasDisponibles={listaPersonas} />

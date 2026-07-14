@@ -18,7 +18,7 @@ export default function FileUpload({
   accept = "*",
   onFilesSelected
 }: FileUploadProps) {
-  
+
   const [fileCount, setFileCount] = useState(0);
 
   const handleFileChange = (e: ChangeEvent<HTMLInputElement>) => {
@@ -29,8 +29,8 @@ export default function FileUpload({
 
   return (
     <div className="w-full">
-      <label 
-        htmlFor="File" 
+      <label
+        htmlFor="File"
         className={cn(
           "group relative flex cursor-pointer flex-col items-center justify-center",
           "rounded-lg border border-dashed border-white/10 bg-[#0a0a0a]",
@@ -40,17 +40,17 @@ export default function FileUpload({
       >
         {/* Icono con estética técnica */}
         <div className="mb-6 transform transition-all duration-500 group-hover:scale-105 group-hover:drop-shadow-[0_0_15px_rgba(37,150,190,0.3)]">
-          <img 
-            src="/archivo-subir.png" 
+          <img
+            src="/archivo-subir.png"
             alt="Excel Icon"
-            className="w-20 h-20 object-contain opacity-40 group-hover:opacity-100 grayscale group-hover:grayscale-0 transition-all" 
+            className="w-20 h-20 object-contain opacity-40 group-hover:opacity-100 grayscale group-hover:grayscale-0 transition-all"
           />
         </div>
 
         <div className="space-y-3">
           <p className="font-bold text-[10px] uppercase tracking-[0.2em] text-gray-500 group-hover:text-gray-300 transition-colors">
-            {fileCount > 0 
-              ? `// ${fileCount} archivo(s) detectado(s)` 
+            {fileCount > 0
+              ? `// ${fileCount} archivo(s) detectado(s)`
               : `// ${label}`
             }
           </p>
@@ -71,11 +71,11 @@ export default function FileUpload({
           {buttonText}
         </span>
 
-        <input 
-          id="File" 
-          type="file" 
-          className="sr-only" 
-          multiple={multiple} 
+        <input
+          id="File"
+          type="file"
+          className="sr-only"
+          multiple={multiple}
           accept={accept}
           onChange={handleFileChange}
         />

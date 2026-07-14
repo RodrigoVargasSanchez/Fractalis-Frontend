@@ -14,9 +14,8 @@ export function useEditLogic(id: string, masterData: any, refreshGraph: () => Pr
     const loadData = async () => {
       try {
         setLoading(true);
-        // Lógica de fetching actual...
-        const data = await grafoService.getGrafoData(id);
-        
+        const data = await grafoService.getGraphData(id);
+
         // Simular o procesar datos...
         // setNodes(...);
         // setEdges(...);
