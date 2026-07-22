@@ -46,6 +46,13 @@ export default function EditarPage({ params }: PageProps) {
     cargarDatos();
   }, [resolvedParams.id]);
 
+  // Efecto para actualizar el título del navegador con el nombre del espacio a editar
+  useEffect(() => {
+    if (itemToEdit) {
+      document.title = `${itemToEdit.titulo} - Editar - Fractalis`;
+    }
+  }, [itemToEdit]);
+
   /**
    * Renderizado de estado de carga.
    * Muestra un spinner animado mientras se espera la respuesta de la base de datos.

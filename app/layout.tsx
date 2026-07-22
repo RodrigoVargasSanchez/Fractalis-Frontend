@@ -1,5 +1,6 @@
 "use client";
 
+import { useEffect } from "react";
 import { usePathname } from "next/navigation";
 import Sidebar from "@/components/layout/Sidebar";
 import GraphBackground from "@/components/GraphBackground";
@@ -14,6 +15,31 @@ export default function RootLayout({
   
   // Determinamos si es la página de login o la raíz pública
   const isPublicPage = pathname === "/login" || pathname === "/";
+
+  useEffect(() => {
+    // Definimos títulos descriptivos según la ruta
+    const titles: Record<string, string> = {
+      "/": "Fractalis",
+      "/login": "Iniciar Sesión - Fractalis",
+      "/espacios": "Mis Espacios - Fractalis",
+      "/nuevo": "Nuevo Espacio - Fractalis",
+      "/nuevo/subir-archivo": "Subir Archivo - Fractalis",
+      "/instrucciones": "Instrucciones de Uso - Fractalis",
+      "/admin/usuarios": "Administración de Usuarios - Fractalis",
+    };
+
+    if (titles[pathname]) {
+      document.title = titles[pathname];
+    } else if (pathname.startsWith("/espacios/ver/")) {
+      document.title = "Detalles del Espacio - Fractalis";
+    } else if (pathname.startsWith("/espacios/editar/")) {
+      document.title = "Editar Espacio - Fractalis";
+    } else if (pathname.startsWith("/espacios/grafo/")) {
+      document.title = "Grafo Evolutivo - Fractalis";
+    } else {
+      document.title = "Fractalis";
+    }
+  }, [pathname]);
 
   return (
     <html lang="es">

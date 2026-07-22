@@ -182,8 +182,8 @@ export const grafoService = {
     // 1. Identificación del Título
     const topicNode = data.nodes.find((n: any) => n.type === "Topic" || (n.labels?.includes("Topic")));
     const title = topicNode?.data?.title || "Grafo de Diálogo";
-    const isMerged = !!topicNode?.data?.is_merged;
-    const spacesMetadata = topicNode?.data?.spaces_metadata ? JSON.parse(topicNode.data.spaces_metadata) : null;
+    const isMerged = false;
+    const spacesMetadata = null;
 
     // 2. Mapeo de Colores por Participante
     const peopleMap: Record<string, string> = {};
@@ -285,17 +285,14 @@ export const grafoService = {
     const processedNodes = data.nodes
       .filter((n: any) => n.type === "Concept" || (n.labels?.includes("Concept")))
       .map((n: any) => {
-        const isMergedNode = !!n.data?.is_merged_node;
-        const mergedColors = n.data?.origin_colors || [];
-
         return {
           ...n,
           data: {
             ...n.data,
             label: n.data.name || n.data.label,
             authorName: conceptData[n.id]?.authorName || "Sistema",
-            color: isMergedNode && mergedColors.length ? mergedColors[0] : (conceptData[n.id]?.colorOriginal || "#57606f"),
-            coloresMenciones: isMergedNode && mergedColors.length ? mergedColors : (conceptData[n.id]?.coloresMenciones || []),
+            color: conceptData[n.id]?.colorOriginal || "#57606f",
+            coloresMenciones: conceptData[n.id]?.coloresMenciones || [],
             autoresMenciones: autoresPorConcepto[n.id] || [],
             timestamp: conceptData[n.id]?.timestamp || Date.now(),
           },

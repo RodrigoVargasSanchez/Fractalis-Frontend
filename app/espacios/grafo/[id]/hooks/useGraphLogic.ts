@@ -35,8 +35,6 @@ export function useGraphLogic(graphId: string) {
   const [advancedStats, setAdvancedStats] = useState<any[]>([]);
 
   // ESTADOS DE INTERACCIÓN Y FILTRADO (PERSONA/RELACIONES)
-  const [isMerged, setIsMerged] = useState(false);
-  const [spacesMetadata, setSpacesMetadata] = useState<any[] | null>(null);
   const [selectedNodeId, setSelectedNodeId] = useState<string | null>(null);
   const [hoveredNodeId, setHoveredNodeId] = useState<string | null>(null);
   const [selectedPerson, setSelectedPerson] = useState<string | null>(null);
@@ -77,8 +75,6 @@ export function useGraphLogic(graphId: string) {
 
       setGraphTitle(data.title);
       setMovieSequence(data.roadmap);
-      setIsMerged(!!data.isMerged);
-      setSpacesMetadata(data.spacesMetadata || null);
 
       // Calcular layouts iniciales
       const defaultLayout = calculateNodePositions(data.processedNodes);
@@ -501,7 +497,6 @@ export function useGraphLogic(graphId: string) {
     isPlaying, setIsPlaying, velocidad, setVelocidad,
     masterData, nodoActualIdx, setNodoActualIdx, movieSequence,
     relationFilter, setRelationFilter, refreshGraph,
-    isMerged, spacesMetadata,
 
     // EXPOSICIÓN DE NUEVOS ATRIBUTOS Y MÉTODOS DE CONTROL DEL CANVAS
     selectedNodeId, setSelectedNodeId,

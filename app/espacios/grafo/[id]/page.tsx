@@ -89,6 +89,13 @@ function GrafoContent({ resolvedParams }: any) {
   const logic = useGraphLogic(resolvedParams.id);
   const { fitView } = useReactFlow();
 
+  // Efecto para actualizar el título del navegador con el título del grafo
+  useEffect(() => {
+    if (logic.graphTitle) {
+      document.title = `${logic.graphTitle} - Grafo - Fractalis`;
+    }
+  }, [logic.graphTitle]);
+
   // INTEGRACIÓN DEL HOOK useEditLogic
   const {
     tempNodes, setTempNodes,
@@ -195,13 +202,11 @@ function GrafoContent({ resolvedParams }: any) {
                 <RelationLegend filter={logic.relationFilter} />
               </Panel>
               <Panel position="bottom-center" className="flex flex-col items-center gap-2 z-40">
-                {!(logic as any).isMerged && (
-                  <GraphControls
-                    {...logic}
-                    onFullscreen={toggleFullscreen}
-                    totalNodes={logic.masterData.nodes.length}
-                  />
-                )}
+                <GraphControls
+                  {...logic}
+                  onFullscreen={toggleFullscreen}
+                  totalNodes={logic.masterData.nodes.length}
+                />
                 <CanvasControls
                   nodes={logic.nodes}
                   selectedNodeId={logic.selectedNodeId}
@@ -211,7 +216,6 @@ function GrafoContent({ resolvedParams }: any) {
                   selectedPerson={logic.selectedPerson}
                   setSelectedPerson={logic.setSelectedPerson}
                   personColors={logic.masterData.personColors}
-                  isMerged={(logic as any).isMerged}
                   isPlaying={logic.isPlaying}
                 />
               </Panel>

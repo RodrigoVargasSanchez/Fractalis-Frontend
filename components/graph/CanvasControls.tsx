@@ -18,7 +18,6 @@ interface CanvasControlsProps {
   selectedPerson: string | null;
   setSelectedPerson: (person: string | null) => void;
   personColors: Record<string, string>;
-  isMerged?: boolean;
   isPlaying?: boolean;
   isCommunityLayoutOn?: boolean;
 }
@@ -41,7 +40,6 @@ export const CanvasControls = ({
   selectedPerson,
   setSelectedPerson,
   personColors,
-  isMerged = false,
   isPlaying = false,
   isCommunityLayoutOn = false,
 }: CanvasControlsProps) => {

@@ -46,6 +46,13 @@ export default function VerEspacioPage({ params }: PageProps) {
     cargarDatos();
   }, [resolvedParams.id]);
 
+  // Efecto para actualizar el título del navegador con el nombre del espacio
+  useEffect(() => {
+    if (item) {
+      document.title = `${item.titulo} - Detalles - Fractalis`;
+    }
+  }, [item]);
+
   /**
    * UI de carga.
    * Proporciona un feedback visual animado mientras se procesa la solicitud asíncrona.
