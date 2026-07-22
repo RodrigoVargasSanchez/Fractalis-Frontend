@@ -209,8 +209,8 @@ export default function RegistrarUsuarioPage() {
           <h1 className="text-3xl font-light uppercase tracking-widest text-white/95">
             Gestión de Usuarios
           </h1>
-          <p className="text-xs font-mono text-white/40 uppercase tracking-wider">
-            // Administración, registro y edición de credenciales de acceso
+          <p className="text-xs text-white uppercase tracking-wider mt-1">
+            Administración, registro y edición de credenciales de acceso
           </p>
         </header>
 

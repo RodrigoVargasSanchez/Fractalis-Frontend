@@ -65,8 +65,8 @@ export default function InstruccionesPage() {
         <h1 className="text-3xl font-light uppercase tracking-widest text-white/95">
           Plantilla e Instrucciones
         </h1>
-        <p className="text-xs font-mono text-white/40 uppercase tracking-wider max-w-xl mx-auto">
-          // Estructura de datos y descarga de plantilla para el análisis
+        <p className="text-xs text-white uppercase tracking-wider max-w-xl mx-auto mt-1">
+          Estructura de datos y descarga de plantilla para el análisis
         </p>
       </header>
 

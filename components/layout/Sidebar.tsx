@@ -57,19 +57,19 @@ export default function Sidebar() {
         {/* LOGO / BRANDING */}
         {!isCollapsed ? (
           <div className="flex flex-col items-start px-2 mb-8 transition-opacity duration-300">
-            <span className="text-[9px] uppercase font-mono tracking-widest text-white/70 mb-1">
-              Core System
-            </span>
-            <h1 className="text-2xl font-extrabold tracking-widest whitespace-nowrap text-white drop-shadow-[0_2px_4px_rgba(0,0,0,0.15)]">
-              FRACTALIS
-            </h1>
-            <p className="text-[10px] font-mono text-white/50 uppercase tracking-wider mt-0.5">
-              // Análisis de Diálogo
-            </p>
+            <img 
+              src="/logofractalis.png" 
+              alt="Fractalis" 
+              className="h-auto w-40 object-contain drop-shadow-[0_0_15px_rgba(255,255,255,0.1)] transition-transform duration-300 hover:scale-105 cursor-pointer"
+            />
           </div>
         ) : (
-          <div className="flex flex-col items-center justify-center mb-8 h-12 w-full text-white animate-pulse">
-            <span className="font-mono text-xl font-bold tracking-widest">F</span>
+          <div className="flex flex-col items-center justify-center mb-8 h-12 w-full text-white">
+            <img 
+              src="/logofractalis.png" 
+              alt="Fractalis" 
+              className="h-10 w-10 object-cover object-left transition-transform duration-300 hover:scale-110 cursor-pointer rounded-lg border border-white/5 shadow-inner"
+            />
           </div>
         )}
 

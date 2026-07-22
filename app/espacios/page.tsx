@@ -118,14 +118,14 @@ export default function EspaciosPage() {
         <img
           src="/logofractalis.png"
           alt="Logo"
-          className="h-auto w-40 md:w-56 object-contain drop-shadow-[0_0_15px_rgba(255,255,255,0.15)] transition-transform duration-300 hover:scale-105"
+          className="h-auto w-60 md:w-72 object-contain drop-shadow-[0_0_15px_rgba(255,255,255,0.15)] transition-transform duration-300 hover:scale-105 cursor-pointer"
         />
         <div className="text-center space-y-1">
           <h1 className="text-2xl font-light uppercase tracking-widest text-white/95">
             Gestión de Espacios
           </h1>
-          <p className="text-[10px] font-mono text-blue-400/80 uppercase tracking-wider mt-0.5">
-            // Panel de Control Principal
+          <p className="text-xs text-white uppercase tracking-wider mt-1">
+            Panel de Control Principal
           </p>
         </div>
 

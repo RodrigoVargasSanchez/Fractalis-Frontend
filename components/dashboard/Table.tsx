@@ -90,7 +90,7 @@ export default function Table({ data, onDelete }: TableProps) {
                   <td className="px-4 py-4 opacity-70 font-mono text-xs">{item.fecha}</td>
                   <td className="px-4 py-4">
                     <span className="bg-blue-500/10 text-blue-400 border border-blue-500/20 px-2.5 py-1 rounded-lg text-xs font-mono font-bold">
-                      {item.participantes} Nodos
+                      {item.participantes} {item.participantes === 1 ? "Participante" : "Participantes"}
                     </span>
                   </td>
                   <td className="px-4 py-4">

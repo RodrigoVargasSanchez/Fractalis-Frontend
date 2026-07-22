@@ -63,11 +63,11 @@ export default function NuevoEspacioPage() {
           <img 
             src="/logofractalis.png" 
             alt="Fractal-IS Diálogo Logo" 
-            className="mx-auto h-auto w-40 md:w-56 object-contain drop-shadow-[0_0_15px_rgba(255,255,255,0.15)] transition-transform hover:scale-105 duration-300"
+            className="mx-auto h-auto w-60 md:w-72 object-contain drop-shadow-[0_0_15px_rgba(255,255,255,0.15)] transition-transform duration-300 hover:scale-105 cursor-pointer"
           />
           <div className="space-y-1">
             <h1 className="text-2xl font-light uppercase tracking-widest text-white/95">Crear Nuevo Espacio</h1>
-            <p className="text-[10px] font-mono text-white/40 uppercase tracking-wider mt-0.5">Configura el entorno para tu análisis de debate</p>
+            <p className="text-xs text-white uppercase tracking-wider mt-1">Configura el entorno para tu análisis de debate</p>
           </div>
         </header>
 

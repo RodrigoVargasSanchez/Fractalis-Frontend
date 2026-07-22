@@ -3,7 +3,6 @@
 import { useState } from "react";
 import { authService } from "@/services/authService";
 import { useRouter } from "next/navigation";
-import Image from "next/image";
 import GraphBackground from "@/components/GraphBackground";
 import { User, Lock, Eye, EyeOff, AlertCircle } from "lucide-react";
 
@@ -39,15 +38,12 @@ export default function LoginPage() {
 
       {/* Contenedor de la Tarjeta de Login */}
       <div className="relative z-10 w-full max-w-md p-8 bg-[#2a2a2a]/70 backdrop-blur-xl rounded-2xl shadow-[0_20px_50px_rgba(0,0,0,0.5)] border border-white/10 transition-all duration-500 hover:border-white/15">
-        <div className="flex justify-center mb-8 transition-transform duration-300 hover:scale-105">
-          {/* Logo del proyecto con prioridad */}
-          <Image
+        <div className="flex justify-center mb-8">
+          {/* Logo del proyecto */}
+          <img
             src="/logofractalis.png"
             alt="Fractalis"
-            width={180}
-            height={60}
-            priority
-            className="drop-shadow-[0_0_15px_rgba(255,255,255,0.1)]"
+            className="h-auto w-64 md:w-72 object-contain drop-shadow-[0_0_15px_rgba(255,255,255,0.15)] transition-transform duration-300 hover:scale-105 cursor-pointer"
           />
         </div>
 
